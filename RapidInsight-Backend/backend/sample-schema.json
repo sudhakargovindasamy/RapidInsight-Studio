@@ -1,0 +1,32 @@
+{
+  "name": "customer_orders",
+  "fields": [
+    {
+      "name": "order_id",
+      "type": "uuid"
+    },
+    {
+      "name": "customer",
+      "type": "string"
+    },
+    {
+      "name": "email",
+      "type": "email"
+    },
+    {
+      "name": "amount",
+      "type": "number"
+    },
+    {
+      "name": "status",
+      "type": "enum",
+      "options": {
+        "values": ["pending", "complete", "failed"]
+      }
+    },
+    {
+      "name": "created_at",
+      "type": "date"
+    }
+  ]
+}

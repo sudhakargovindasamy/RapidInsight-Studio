@@ -1,0 +1,132 @@
+/* ── WorkspacePage styles ───────────────────────── */
+.wp-hero {
+  min-height: auto !important;
+  padding: 32px 42px !important;
+  margin-bottom: 36px;
+  background: linear-gradient(135deg, #f59e0b, #ef4444) !important;
+}
+
+/* Summary bar */
+.wp-summary-bar {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 20px 28px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-main);
+  backdrop-filter: blur(14px);
+  flex-wrap: wrap;
+}
+
+.wp-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.wp-stat-value {
+  font-size: 30px;
+  font-weight: 900;
+  color: var(--text-main);
+  letter-spacing: -1px;
+  line-height: 1;
+}
+
+.wp-stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* Table */
+.wp-table-wrap {
+  overflow-x: auto;
+}
+
+.wp-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.wp-table th {
+  padding: 10px 14px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.wp-table td {
+  padding: 16px 14px;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 14px;
+}
+
+.wp-table tr:last-child td {
+  border-bottom: none;
+}
+
+.wp-schema-name {
+  font-weight: 700;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wp-highlight-pill {
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(37, 99, 235, 0.15);
+  color: var(--schema-primary);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.wp-row-highlight {
+  background: rgba(37, 99, 235, 0.04);
+}
+
+.wp-status {
+  font-size: 13px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.wp-status--active {
+  background: var(--schema-success-soft);
+  color: var(--schema-success);
+}
+
+.wp-status--idle {
+  background: var(--muted-bg);
+  color: var(--text-muted);
+}
+
+.wp-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.wp-btn {
+  padding: 7px 14px !important;
+  font-size: 13px !important;
+  min-height: 0 !important;
+  width: auto !important;
+  margin-top: 0 !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 720px) {
+  .wp-summary-bar { gap: 20px; }
+  .wp-table th, .wp-table td { padding: 10px; }
+}

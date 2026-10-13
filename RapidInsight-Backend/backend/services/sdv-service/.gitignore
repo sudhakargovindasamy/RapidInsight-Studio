@@ -1,0 +1,8 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+.env
+
+# Fitted models. Rebuildable from the seed rows, so never committed.
+.artifacts/

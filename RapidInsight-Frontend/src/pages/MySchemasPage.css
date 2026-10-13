@@ -1,0 +1,187 @@
+/* ── MySchemasPage styles ──────────────────────── */
+/* Main container handled by .schema-container in index.css */
+
+
+.ms-hero {
+  min-height: auto !important;
+  padding: 32px 42px !important;
+  margin-bottom: 36px;
+}
+
+/* Toolbar */
+.ms-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.ms-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ms-search {
+  padding: 10px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  background: var(--muted-bg);
+  color: var(--text-main);
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 260px;
+  outline: none;
+  transition: border-color 0.18s ease;
+}
+
+.ms-search:focus {
+  border-color: var(--schema-primary);
+}
+
+/* Card list */
+.ms-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 18px;
+}
+
+.ms-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 22px;
+  padding: 24px 28px;
+  box-shadow: var(--shadow-main);
+  backdrop-filter: blur(14px);
+  transition: 0.2s ease;
+}
+
+.ms-card:hover {
+  border-color: rgba(37, 99, 235, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 20px 50px rgba(37, 99, 235, 0.1);
+}
+
+.ms-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.ms-card-name {
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--text-main);
+  word-break: break-word;
+}
+
+.ms-card-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ms-field-count {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--schema-success-soft);
+  color: var(--schema-success);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* Meta */
+.ms-card-meta {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 18px;
+  font-size: 13.5px;
+  color: var(--text-muted);
+}
+
+.ms-id {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+  background: var(--muted-bg);
+  padding: 2px 6px;
+  border-radius: 6px;
+  color: var(--schema-primary);
+}
+
+.ms-copy-btn {
+  margin-left: 8px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.14s ease;
+}
+
+.ms-copy-btn:hover {
+  background: var(--schema-primary-soft);
+  color: var(--schema-primary);
+}
+
+/* Actions */
+.ms-card-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Field list */
+.ms-fields {
+  margin-top: 18px;
+  border-top: 1px solid var(--border-color);
+  padding-top: 16px;
+  display: grid;
+  gap: 8px;
+}
+
+.ms-field-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+}
+
+.ms-field-name {
+  font-weight: 700;
+  color: var(--text-main);
+  min-width: 140px;
+}
+
+.ms-field-type {
+  padding: 3px 9px;
+  border-radius: 8px;
+  background: var(--muted-bg);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ms-field-req {
+  padding: 3px 9px;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--schema-danger);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+@media (max-width: 720px) {
+  .ms-toolbar { flex-direction: column; align-items: flex-start; }
+  .ms-search { min-width: 100%; }
+  .ms-card { padding: 18px 20px; }
+}

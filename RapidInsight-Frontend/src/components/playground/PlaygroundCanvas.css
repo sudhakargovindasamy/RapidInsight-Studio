@@ -1,0 +1,394 @@
+.playground-canvas {
+  position: relative;
+  width: 100%;
+  min-height: 650px;
+  height: min(78vh, 860px);
+  overflow: hidden;
+  border: 1px solid rgba(101, 125, 183, 0.28);
+  border-radius: 30px;
+  background: #090f1c;
+}
+
+.playground-canvas--fullscreen {
+  position: fixed !important;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  min-height: 100vh;
+  overflow: hidden;
+  z-index: 1000;
+  margin: 0 !important;
+  border-radius: 0;
+}
+
+.playground-canvas--loading,
+.playground-canvas--empty {
+  display: grid;
+  place-items: center;
+}
+
+.canvas-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 0 0, rgba(96, 165, 250, 0.35) 1.5px, transparent 1.5px),
+    linear-gradient(rgba(96, 165, 250, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(96, 165, 250, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+  opacity: 0.45;
+  transition: opacity 150ms ease;
+}
+
+.canvas-entities {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  transition: none;
+  backface-visibility: hidden;
+}
+
+.canvas-entities > * {
+  pointer-events: auto;
+}
+
+
+.canvas-actions {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 5;
+}
+
+.canvas-reset-btn,
+.canvas-refresh-btn,
+.canvas-fullscreen-btn {
+  border: 1px solid rgba(96, 165, 250, 0.34);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #bfdbfe;
+  background: rgba(15, 23, 42, 0.88);
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  transition: all 0.2s ease;
+}
+
+.canvas-reset-btn:hover,
+.canvas-refresh-btn:hover,
+.canvas-fullscreen-btn:hover {
+  border-color: rgba(96, 165, 250, 0.7);
+  color: #ffffff;
+  background: rgba(30, 41, 59, 0.95);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.canvas-view-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.canvas-view-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #bfdbfe;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.canvas-layout-toggle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(96, 165, 250, 0.34);
+  border-radius: 999px;
+  padding: 3px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 11px;
+  color: #93c5fd;
+  width: 170px;
+  height: 26px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.canvas-layout-toggle .toggle-slider {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: calc(50% - 2px);
+  height: calc(100% - 4px);
+  background: rgba(96, 165, 250, 0.3);
+  border: 1px solid rgba(96, 165, 250, 0.5);
+  border-radius: 999px;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
+}
+
+.canvas-layout-toggle.is-star .toggle-slider {
+  transform: translateX(100%);
+}
+
+.canvas-layout-toggle .toggle-label {
+  flex: 1;
+  text-align: center;
+  z-index: 2;
+  position: relative;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: color 0.25s ease;
+}
+
+.canvas-layout-toggle.is-default .default-label {
+  color: #ffffff;
+}
+
+.canvas-layout-toggle.is-star .star-label {
+  color: #ffffff;
+}
+
+.canvas-header {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 5;
+}
+
+.canvas-logo-icon {
+  font-size: 20px;
+}
+
+.canvas-logo-text {
+  font-weight: 700;
+  font-size: 16px;
+  color: #e5edff;
+  letter-spacing: 0.5px;
+}
+
+.canvas-empty-state {
+  max-width: 460px;
+  padding: 26px;
+  text-align: center;
+  border: 1px dashed rgba(148, 163, 184, 0.28);
+  border-radius: 24px;
+  background: rgba(15, 23, 42, 0.68);
+  color: #9aa8c7;
+}
+
+.canvas-empty-state h3 {
+  margin: 0 0 8px;
+  color: #e5edff;
+}
+
+@media (max-width: 720px) {
+  .playground-canvas {
+    min-height: 760px;
+  }
+}
+
+/* Light Theme Canvas Override */
+body[data-theme='light'] .playground-canvas {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(111, 98, 198, 0.04), transparent 30%),
+    #f4f7fa;
+  border-color: var(--border-color);
+}
+
+body[data-theme='light'] .canvas-grid {
+  background:
+    radial-gradient(circle at 0 0, rgba(90, 76, 173, 0.65) 1.5px, transparent 1.5px),
+    linear-gradient(rgba(90, 76, 173, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(90, 76, 173, 0.08) 1px, transparent 1px);
+  opacity: 0.95;
+}
+
+body[data-theme='light'] .canvas-reset-btn,
+body[data-theme='light'] .canvas-refresh-btn,
+body[data-theme='light'] .canvas-fullscreen-btn {
+  background: var(--card-solid);
+  color: var(--text-main);
+  border-color: var(--border-color);
+}
+
+body[data-theme='light'] .canvas-logo-text {
+  color: var(--text-main);
+}
+
+body[data-theme='light'] .canvas-empty-state {
+  border-color: var(--border-color);
+  background: var(--card-solid);
+  color: var(--text-muted);
+}
+
+body[data-theme='light'] .canvas-empty-state h3 {
+  color: var(--text-main);
+}
+
+/* ==================================================
+   Supabase-style column constraint legend
+   ================================================== */
+
+.canvas-field-legend {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 8;
+  min-height: 42px;
+  padding: 9px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  color: #f1f4f8;
+  background: rgba(15, 18, 18, 0.96);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 -8px 22px rgba(0, 0, 0, 0.16);
+  backdrop-filter: blur(12px);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+  font-weight: 650;
+  pointer-events: auto;
+}
+
+.canvas-field-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.canvas-field-legend__icon {
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #bec5ce;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.canvas-field-legend__icon--pk {
+  font-size: 16px;
+  transform: rotate(-28deg);
+}
+
+.canvas-field-legend__icon--unique {
+  font-size: 13px;
+}
+
+.canvas-field-legend__icon--filled {
+  color: #cfd4da;
+}
+
+.canvas-field-legend__icon--fact {
+  color: #c084fc;
+  font-size: 13px;
+  font-style: italic;
+}
+
+.canvas-field-legend__icon--dimension {
+  color: #60a5fa;
+  font-size: 13px;
+}
+
+body[data-theme='light'] .canvas-field-legend {
+  color: #232837;
+  background: rgba(248, 249, 252, 0.97);
+  border-top-color: rgba(76, 84, 105, 0.18);
+  box-shadow: 0 -8px 22px rgba(41, 47, 68, 0.09);
+}
+
+body[data-theme='light'] .canvas-field-legend__icon {
+  color: #535c6c;
+}
+
+@media (max-width: 720px) {
+  .canvas-field-legend {
+    padding: 8px 12px;
+    gap: 8px 12px;
+    font-size: 10px;
+  }
+}
+
+
+
+
+
+/* Keep drag-to-pan directly under the pointer. */
+.playground-canvas {
+  cursor: grab;
+  touch-action: none;
+}
+
+.playground-canvas:active {
+  cursor: grabbing;
+}
+
+.canvas-relationships {
+  backface-visibility: hidden;
+}
+
+/* Light Theme Overrides for Playground Controls */
+body[data-theme='light'] .canvas-reset-btn,
+body[data-theme='light'] .canvas-refresh-btn,
+body[data-theme='light'] .canvas-fullscreen-btn {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #4b5563;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+body[data-theme='light'] .canvas-reset-btn:hover,
+body[data-theme='light'] .canvas-refresh-btn:hover,
+body[data-theme='light'] .canvas-fullscreen-btn:hover {
+  border-color: rgba(0, 0, 0, 0.2);
+  color: #111827;
+  background: #ffffff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+body[data-theme='light'] .canvas-view-label {
+  color: #6b7280;
+}
+
+body[data-theme='light'] .canvas-layout-toggle {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #6b7280;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+body[data-theme='light'] .canvas-layout-toggle .toggle-slider {
+  background: #e0e7ff;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+body[data-theme='light'] .canvas-layout-toggle.is-default .default-label,
+body[data-theme='light'] .canvas-layout-toggle.is-star .star-label {
+  color: #4338ca;
+}
+
+body[data-theme='light'] .pk-icon-dark {
+  display: none !important;
+}
+
+body[data-theme='light'] .pk-icon-light {
+  display: inline-block !important;
+}

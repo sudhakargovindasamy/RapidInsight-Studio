@@ -1,0 +1,3464 @@
+/* ─────────────────────────────────────────────────
+   ProjectWorkspacePage — hero + tabs layout
+   ───────────────────────────────────────────────── */
+
+/* Hero */
+.pws-hero {
+  min-height: 140px;
+}
+
+/* Status badge inside hero card */
+.pws-status-badge {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  margin-top: 12px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.18);
+  color: white;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.pws-status-badge--inactive {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.pws-status-badge--archived {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* ── Content area ────────────────────────────────── */
+.pws-content {
+  /* panels handle their own styling */
+}
+
+/* ── Stack layout for Schemas tab ──────────── */
+.pws-two-col {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* When upload is hidden, schema list fills full width */
+.pws-two-col > *:only-child {
+  grid-column: 1 / -1;
+}
+
+/* ── Tab bar row (tabs + new schema button) ──────── */
+.pws-tab-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.pws-tab-row .tab-list {
+  flex: 1;
+  margin-bottom: 0;   /* override global margin since we handle it in pws-tab-row */
+}
+
+/* ++ New Schema button */
+.pws-new-schema-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 20px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, var(--schema-primary), var(--schema-primary-dark));
+  color: white;
+  font-size: 13.5px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
+  transition: 0.18s ease;
+  flex-shrink: 0;
+}
+
+.pws-new-schema-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(37, 99, 235, 0.35);
+}
+
+.pws-new-schema-btn--lg {
+  padding: 10px 22px;
+  font-size: 14px;
+}
+
+/* Schemas tab toolbar */
+.pws-schemas-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.pws-schemas-title {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--text-main);
+  letter-spacing: -0.4px;
+}
+
+.pws-schemas-sub {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--text-muted);
+}
+
+
+
+/* ── Overview grid ───────────────────────────────── */
+.pws-overview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .pws-overview-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Detail list (info panel) ────────────────────── */
+.pws-detail-list {
+  display: grid;
+  gap: 0;
+}
+
+/* ── Quick action buttons ────────────────────────── */
+.pws-quick-actions {
+  display: grid;
+  gap: 12px;
+}
+
+.pws-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  background: var(--muted-bg);
+  color: var(--text-main);
+  cursor: pointer;
+  text-align: left;
+  transition: 0.2s ease;
+  width: 100%;
+}
+
+.pws-action-btn:hover {
+  border-color: rgba(37, 99, 235, 0.4);
+  background: var(--schema-primary-soft);
+  transform: translateX(3px);
+}
+
+.pws-action-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  display: grid;
+  place-items: center;
+}
+
+.pws-action-btn span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pws-action-btn strong {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.pws-action-btn small {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* ── Workspace panel ─────────────────────────────── */
+.workspace-panel {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 26px;
+  padding: 28px;
+  box-shadow: var(--shadow-main);
+  backdrop-filter: blur(18px);
+}
+
+.workspace-panel h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--text-main);
+  letter-spacing: -0.4px;
+}
+
+.workspace-panel > p {
+  margin: 0 0 24px;
+  color: var(--text-muted);
+  font-size: 14.5px;
+}
+
+/* Search input */
+.search-input {
+  width: 100%;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 12px 16px;
+  background: var(--muted-bg);
+  color: var(--text-main);
+  font-size: 14px;
+  outline: none;
+  margin-bottom: 20px;
+  transition: 0.18s ease;
+}
+
+.search-input:focus {
+  border-color: var(--schema-primary);
+  box-shadow: 0 0 0 3px var(--schema-primary-soft);
+}
+
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Schema grid */
+.schema-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+/* Schema card item */
+.schema-card-item {
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 20px;
+  background: var(--muted-bg);
+  transition: 0.2s ease;
+}
+
+.schema-card-item:hover {
+  border-color: rgba(37, 99, 235, 0.4);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-main);
+}
+
+/* Schema actions */
+.schema-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* Schema note */
+.schema-note {
+  font-size: 13px;
+  color: var(--text-muted) !important;
+  margin: 8px 0 0 !important;
+  font-style: italic;
+}
+
+/* ── Responsive ──────────────────────────────────── */
+@media (max-width: 720px) {
+  .workspace-panel {
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  .tab-list {
+    gap: 2px;
+    padding: 4px;
+  }
+
+  .tab-button {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
+
+/* ==================================================
+   Overview & Schema consolidated workspace
+   ================================================== */
+.pws-page {
+  padding-top: 26px;
+}
+
+.pws-page .pws-hero {
+  min-height: 130px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  border-radius: 22px;
+}
+
+.pws-page .pws-hero h1 {
+  margin-top: 12px;
+  font-size: clamp(24px, 3.2vw, 30px);
+}
+
+.pws-page .pws-hero p {
+  max-width: 760px;
+}
+
+.pws-section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 0 0 14px;
+}
+
+.pws-section-heading h2 {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 19px;
+  letter-spacing: -0.02em;
+}
+
+.pws-section-heading p {
+  margin: 5px 0 0;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.pws-overview-single-panel {
+  margin-bottom: 20px;
+}
+
+.pws-overview-single-panel > .workspace-panel {
+  min-width: 0;
+  margin: 0;
+  padding: 17px;
+  border-radius: 15px;
+}
+
+.pws-overview-schema-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.72fr) minmax(390px, 1.28fr);
+  gap: 15px;
+  margin-bottom: 18px;
+}
+
+.pws-overview-schema-grid > .workspace-panel {
+  min-width: 0;
+  margin: 0;
+  padding: 17px;
+  border-radius: 15px;
+}
+
+.pws-project-details .panel-header {
+  margin-bottom: 7px;
+}
+
+.pws-project-details .detail-row {
+  min-height: 38px;
+  padding: 8px 0;
+  grid-template-columns: 102px minmax(0, 1fr);
+}
+
+.pws-project-id {
+  overflow: hidden;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Make the existing upload panel compact inside the overview grid. */
+.pws-overview-schema-grid .upload-zone,
+.pws-overview-schema-grid .dropzone {
+  min-height: 118px;
+  padding: 18px;
+}
+
+.pws-overview-schema-grid .panel-title {
+  font-size: 16px;
+}
+
+.pws-overview-schema-grid .panel-description {
+  font-size: 11px;
+}
+
+.pws-schemas-panel {
+  padding: 18px;
+  border-radius: 15px;
+}
+
+.pws-schemas-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.pws-schema-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pws-schema-search {
+  width: min(260px, 28vw);
+  margin: 0;
+}
+
+/*
+ * Explains a disabled Generate Tables button. Seed generation is invisible
+ * background work, so without this the button just looks broken.
+ */
+.pws-seed-status-note {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  border: 1px solid rgba(99, 102, 241, 0.22);
+  border-radius: 12px;
+  background: rgba(99, 102, 241, 0.08);
+  color: var(--text-muted, #64748b);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.pws-seed-count {
+  margin-left: auto;
+  flex-shrink: 0;
+  color: var(--schema-primary, #6366f1);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+/* Sits after the count, so the count keeps its margin-left:auto push. */
+.pws-seed-retry-btn {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border: 1px solid var(--schema-primary, #6366f1);
+  border-radius: 999px;
+  background: var(--schema-primary, #6366f1);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.pws-seed-retry-btn:hover {
+  filter: brightness(1.08);
+}
+
+.pws-seed-retry-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.pws-seed-spinner {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  border: 2px solid rgba(99, 102, 241, 0.28);
+  border-top-color: var(--schema-primary, #6366f1);
+  border-radius: 50%;
+  animation: pws-seed-spin 0.7s linear infinite;
+}
+
+@keyframes pws-seed-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pws-seed-spinner {
+    animation: none;
+  }
+}
+
+.pws-compact-schema-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 11px;
+}
+
+.schema-card-item--compact {
+  position: relative;
+  overflow: hidden;
+  min-height: 184px;
+  padding: 14px 14px 58px;
+  border-radius: 12px;
+}
+
+.schema-card-item--compact::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  width: 145px;
+  height: 145px;
+  top: -82px;
+  right: -82px;
+  transform: rotate(28deg);
+  pointer-events: none;
+  background: linear-gradient(
+    135deg,
+    var(--schema-primary-soft),
+    transparent 72%
+  );
+}
+
+.schema-card-item--compact > * {
+  position: relative;
+  z-index: 1;
+}
+
+.schema-card-item--compact .schema-name {
+  margin: 0;
+  overflow: hidden;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.schema-card-item--compact .schema-card-subtitle {
+  margin-top: 5px;
+  overflow: hidden;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.schema-meta--compact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 14px;
+}
+
+.schema-meta--compact > span {
+  padding: 5px 7px;
+  border-radius: 6px;
+  background: var(--muted-bg);
+  font-size: 9px;
+}
+
+.schema-actions--compact {
+  position: absolute;
+  right: 14px;
+  bottom: 12px;
+  left: 14px;
+  display: flex;
+  gap: 7px;
+}
+
+.schema-actions--compact button {
+  min-width: 0;
+  min-height: 34px;
+  padding: 0 10px;
+  font-size: 9px;
+}
+
+.schema-build-generate-btn {
+  flex: 1;
+  white-space: nowrap;
+}
+
+/* Stronger Ice Lavender contrast, matching the Projects page. */
+body[data-theme='light'] .pws-page {
+  color: #222238;
+}
+
+body[data-theme='light'] .pws-page .pws-hero {
+  color: #222238 !important;
+  border-color: #cdc7e5 !important;
+  background: linear-gradient(135deg, #eeebfa, #fafaff 66%) !important;
+  box-shadow: 0 14px 34px rgba(68, 63, 125, 0.10) !important;
+}
+
+body[data-theme='light'] .pws-page .pws-hero h1 {
+  color: #222238 !important;
+}
+
+body[data-theme='light'] .pws-page .pws-hero p {
+  color: #50506c !important;
+}
+
+body[data-theme='light'] .pws-page .hero-kicker {
+  color: #594cad !important;
+  background: #e1dcf4 !important;
+}
+
+body[data-theme='light'] .pws-page .workspace-panel,
+body[data-theme='light'] .pws-page .schema-card-item {
+  color: #222238 !important;
+  border-color: #d4d4e8 !important;
+  background: #fafaff !important;
+  box-shadow: 0 14px 34px rgba(68, 63, 125, 0.10) !important;
+}
+
+body[data-theme='light'] .pws-page .panel-title,
+body[data-theme='light'] .pws-page .detail-value,
+body[data-theme='light'] .pws-page .schema-name {
+  color: #222238 !important;
+}
+
+body[data-theme='light'] .pws-page .panel-description,
+body[data-theme='light'] .pws-page .detail-label,
+body[data-theme='light'] .pws-page .schema-card-subtitle {
+  color: #696483 !important;
+}
+
+body[data-theme='light'] .pws-page .detail-row {
+  border-color: #dedcec !important;
+}
+
+body[data-theme='light'] .pws-page .search-input,
+body[data-theme='light'] .pws-page .dropzone,
+body[data-theme='light'] .pws-page .upload-zone {
+  color: #222238 !important;
+  border-color: #c7c0e7 !important;
+  background: #f6f5fd !important;
+}
+
+body[data-theme='light'] .pws-page .schema-meta--compact > span {
+  color: #554f69 !important;
+  background: #eceaf7 !important;
+}
+
+@media (max-width: 1180px) {
+  .pws-compact-schema-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .pws-overview-schema-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pws-compact-schema-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .pws-schemas-panel-header,
+  .pws-schema-header-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .pws-schema-search {
+    width: 100%;
+  }
+
+  .pws-compact-schema-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==================================================
+   Final light-theme workspace selection
+
+   Card 1:
+   Midnight Navy + Cut Corner
+
+   Cards 2, 3 and 4:
+   Navy Tint
+
+   This section is intentionally scoped to light mode.
+   The existing dark theme remains unchanged.
+   ================================================== */
+
+
+/* ==================================================
+   Card 1: Exact Midnight Navy preview styling
+   ================================================== */
+
+body[data-theme='light'] .pws-page .pws-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+
+  min-height: 154px;
+
+  color: #29263f !important;
+
+  border:
+    1px solid #a9a3c8 !important;
+
+  border-radius:
+    22px 22px 52px 22px !important;
+
+  background: #bbb6d5 !important;
+
+  /*
+   * Small physical cut at the outer
+   * bottom-right corner.
+   */
+  clip-path:
+    polygon(
+      0 0,
+      100% 0,
+      100% 82%,
+      97% 100%,
+      0 100%
+    ) !important;
+
+  box-shadow:
+    0 18px 42px
+    rgba(70, 61, 111, 0.16) !important;
+}
+
+
+/* Remove any old secondary decorative shape. */
+
+body[data-theme='light'] .pws-page .pws-hero::before {
+  content: none !important;
+  display: none !important;
+}
+
+
+/* ==================================================
+   Exact diagonal violet rectangle from the preview
+   ================================================== */
+
+body[data-theme='light'] .pws-page .pws-hero::after {
+  content: '';
+
+  position: absolute;
+  z-index: 0;
+
+  /*
+   * Exact dimensions and position from
+   * midnight_navy_workspace_card_options.html
+   */
+  top: -75px;
+  right: -95px;
+
+  width: 330px;
+  height: 240px;
+
+  /*
+   * This rotation creates the diagonal left
+   * and bottom edges shown in expected SS2.
+   */
+  transform:
+    rotate(-18deg) !important;
+
+  transform-origin:
+    center center;
+
+  /*
+   * Critical resets:
+   * Prevent older CSS from turning the overlay
+   * into the rounded SS1 shape.
+   */
+  border: 0 !important;
+  border-radius: 0 !important;
+  clip-path: none !important;
+
+  opacity: 1;
+
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(103, 84, 165, 0.20),
+      transparent 65%
+    ) !important;
+}
+
+
+/* Keep actual Card 1 content above the overlay. */
+
+body[data-theme='light'] .pws-page .pws-hero > * {
+  position: relative;
+  z-index: 2;
+}
+
+
+/* Project title. */
+
+body[data-theme='light'] .pws-page .pws-hero h1 {
+  color: #29263f !important;
+  text-shadow: none !important;
+}
+
+
+/* Project description. */
+
+body[data-theme='light'] .pws-page .pws-hero p {
+  color: #514b68 !important;
+}
+
+
+/* Project Workspace badge. */
+
+body[data-theme='light']
+  .pws-page
+  .pws-hero
+  .hero-kicker {
+  color: #423a60 !important;
+
+  border-color: rgba(78, 67, 119, 0.28) !important;
+
+  background: rgba(255, 255, 255, 0.48) !important;
+
+  backdrop-filter:
+    blur(10px);
+}
+
+
+/* Active project badge. */
+
+body[data-theme='light']
+  .pws-page
+  .pws-hero
+  .pws-status-badge {
+  color: #7ce6b6 !important;
+
+  border-color:
+    rgba(101, 222, 166, 0.34) !important;
+
+  background:
+    rgba(72, 199, 142, 0.12) !important;
+
+  backdrop-filter:
+    blur(10px);
+}
+
+
+/* ==================================================
+   Cards 2, 3 and 4: Navy Tint surfaces
+   ================================================== */
+
+/*
+ * Card 2: Project details
+ * Card 3: Upload Schema
+ * Card 4: Uploaded schemas
+ */
+
+body[data-theme='light']
+  .pws-page
+  .pws-overview-schema-grid
+  > .workspace-panel,
+body[data-theme='light']
+  .pws-page
+  .pws-schemas-panel {
+  color: #1f2638 !important;
+
+  border:
+    1px solid #bcc5da !important;
+
+  /*
+   * The subtle navy top edge visually connects
+   * these working cards to the hero.
+   */
+  border-top:
+    3px solid #aab4d1 !important;
+
+  border-radius:
+    14px !important;
+
+  background:
+    #f3f5fb !important;
+
+  box-shadow:
+    0 15px 36px rgba(35, 48, 76, 0.13) !important;
+
+  backdrop-filter: none !important;
+}
+
+
+/* Main titles inside Cards 2, 3 and 4. */
+
+body[data-theme='light']
+  .pws-page
+  .pws-overview-schema-grid
+  .panel-title,
+body[data-theme='light']
+  .pws-page
+  .pws-schemas-panel
+  .panel-title,
+body[data-theme='light']
+  .pws-page
+  .pws-overview-schema-grid
+  .detail-value {
+  color: #1f2638 !important;
+}
+
+
+/* Supporting labels and descriptions. */
+
+body[data-theme='light']
+  .pws-page
+  .pws-overview-schema-grid
+  .panel-description,
+body[data-theme='light']
+  .pws-page
+  .pws-schemas-panel
+  .panel-description,
+body[data-theme='light']
+  .pws-page
+  .pws-overview-schema-grid
+  .detail-label {
+  color: #59657d !important;
+}
+
+
+/* Dividers in the project-details card. */
+
+body[data-theme='light']
+  .pws-page
+  .pws-overview-schema-grid
+  .detail-row {
+  border-bottom-color:
+    #d5dbe9 !important;
+}
+
+
+/* Keep the final detail row clean. */
+
+body[data-theme='light']
+  .pws-page
+  .pws-overview-schema-grid
+  .detail-row:last-child {
+  border-bottom-color:
+    transparent !important;
+}
+
+
+/* ==================================================
+   Card 3: Upload Schema nested surface
+   ================================================== */
+
+body[data-theme='light']
+  .pws-page
+  .pws-overview-schema-grid
+  .upload-zone,
+body[data-theme='light']
+  .pws-page
+  .pws-overview-schema-grid
+  .dropzone {
+  color: #1f2638 !important;
+
+  border-color:
+    #aebbd3 !important;
+
+  background:
+    #e9edf7 !important;
+}
+
+
+/* Upload area hover and drag-over feedback. */
+
+body[data-theme='light']
+  .pws-page
+  .pws-overview-schema-grid
+  .dropzone:hover,
+body[data-theme='light']
+  .pws-page
+  .pws-overview-schema-grid
+  .dropzone--drag-over {
+  border-color:
+    #7f8eb3 !important;
+
+  background:
+    #e2e7f3 !important;
+}
+
+
+/* Upload icon surface. */
+
+body[data-theme='light']
+  .pws-page
+  .pws-overview-schema-grid
+  .dropzone-icon,
+body[data-theme='light']
+  .pws-page
+  .pws-overview-schema-grid
+  .upload-icon {
+  color: #6f62c6 !important;
+
+  background:
+    #dbe2f4 !important;
+}
+
+
+/* Upload heading. */
+
+body[data-theme='light']
+  .pws-page
+  .pws-overview-schema-grid
+  .dropzone-title,
+body[data-theme='light']
+  .pws-page
+  .pws-overview-schema-grid
+  .upload-zone strong {
+  color: #1f2638 !important;
+}
+
+
+/* Upload supporting text. */
+
+body[data-theme='light']
+  .pws-page
+  .pws-overview-schema-grid
+  .dropzone-subtitle,
+body[data-theme='light']
+  .pws-page
+  .pws-overview-schema-grid
+  .upload-zone small {
+  color: #59657d !important;
+}
+
+
+/* Selected file display. */
+
+body[data-theme='light']
+  .pws-page
+  .dropzone-file-selected {
+  color: #1f2638 !important;
+
+  border-color:
+    #bcc5da !important;
+
+  background:
+    #f3f5fb !important;
+}
+
+
+/* File type chips. */
+
+body[data-theme='light']
+  .pws-page
+  .dropzone-types span {
+  color: #4f5f78 !important;
+
+  border-color:
+    #c7cede !important;
+
+  background:
+    #eef1f8 !important;
+}
+
+
+/* ==================================================
+   Card 4: Uploaded schemas controls
+   ================================================== */
+
+body[data-theme='light']
+  .pws-page
+  .pws-schema-search {
+  color: #1f2638 !important;
+
+  border-color:
+    #bcc5da !important;
+
+  background:
+    #e9edf7 !important;
+}
+
+
+body[data-theme='light']
+  .pws-page
+  .pws-schema-search::placeholder {
+  color: #6b7690 !important;
+}
+
+
+body[data-theme='light']
+  .pws-page
+  .pws-schema-search:focus {
+  border-color:
+    #6f62c6 !important;
+
+  background:
+    #f3f5fb !important;
+
+  box-shadow:
+    0 0 0 3px rgba(111, 98, 198, 0.12) !important;
+}
+
+
+/* Refresh/secondary controls inside Card 4. */
+
+body[data-theme='light']
+  .pws-page
+  .pws-schema-header-actions
+  .refresh-btn {
+  color: #48546e !important;
+
+  border-color:
+    #bcc5da !important;
+
+  background:
+    #eef1f8 !important;
+}
+
+
+body[data-theme='light']
+  .pws-page
+  .pws-schema-header-actions
+  .refresh-btn:hover {
+  color: #35415d !important;
+
+  border-color:
+    #9ca8c3 !important;
+
+  background:
+    #e4e9f5 !important;
+}
+
+
+/* ==================================================
+   Card 4: Generation progress/status surface
+   ================================================== */
+
+body[data-theme='light']
+  .pws-page
+  .generate-status-card {
+  color: #1f2638 !important;
+
+  border-color:
+    #aebbd3 !important;
+
+  border-radius:
+    12px !important;
+
+  background:
+    #e4e9f5 !important;
+}
+
+
+/* Running state. */
+
+body[data-theme='light']
+  .pws-page
+  .generate-status-card--running {
+  border-color:
+    rgba(79, 95, 145, 0.50) !important;
+}
+
+
+/* Completed state. */
+
+body[data-theme='light']
+  .pws-page
+  .generate-status-card--done {
+  border-color:
+    rgba(22, 134, 91, 0.45) !important;
+}
+
+
+/* Failed state. */
+
+body[data-theme='light']
+  .pws-page
+  .generate-status-card--failed {
+  border-color:
+    rgba(220, 89, 107, 0.50) !important;
+}
+
+
+/* Progress track. */
+
+body[data-theme='light']
+  .pws-page
+  .generate-progress-track {
+  background:
+    #d3d9e8 !important;
+}
+
+
+/* Progress fill connects navy and violet. */
+
+body[data-theme='light']
+  .pws-page
+  .generate-progress-fill {
+  background:
+    linear-gradient(
+      90deg,
+      #4f5f91,
+      #6f62c6
+    ) !important;
+}
+
+
+/* Error surface within the status card. */
+
+body[data-theme='light']
+  .pws-page
+  .generate-status-error {
+  color: #b4233a !important;
+
+  border:
+    1px solid rgba(220, 89, 107, 0.24);
+
+  background:
+    rgba(239, 113, 130, 0.11) !important;
+}
+
+
+/* ==================================================
+   Compact uploaded schema cards
+   ================================================== */
+
+body[data-theme='light']
+  .pws-page
+  .schema-card-item--compact {
+  color: #1f2638 !important;
+
+  border-color:
+    #c1c9dc !important;
+
+  background:
+    #f7f8fc !important;
+
+  box-shadow:
+    0 10px 25px rgba(35, 48, 76, 0.09) !important;
+}
+
+
+body[data-theme='light']
+  .pws-page
+  .schema-card-item--compact:hover {
+  border-color:
+    #8997b7 !important;
+
+  background:
+    #fbfcff !important;
+
+  box-shadow:
+    0 15px 31px rgba(35, 48, 76, 0.13) !important;
+}
+
+
+body[data-theme='light']
+  .pws-page
+  .schema-card-item--compact
+  .schema-name {
+  color: #1f2638 !important;
+}
+
+
+body[data-theme='light']
+  .pws-page
+  .schema-card-item--compact
+  .schema-card-subtitle {
+  color: #65708a !important;
+}
+
+
+body[data-theme='light']
+  .pws-page
+  .schema-meta--compact
+  > span {
+  color: #4f5c75 !important;
+
+  border:
+    1px solid #d0d6e4;
+
+  background:
+    #e9edf7 !important;
+}
+
+
+/* ==================================================
+   Responsive overlay positioning
+   ================================================== */
+
+@media (max-width: 900px) {
+  body[data-theme='light']
+    .pws-page
+    .pws-hero::after {
+    top: -50px;
+    right: -87px;
+
+    width: 217px;
+    height: 157px;
+  }
+}
+
+
+@media (max-width: 720px) {
+  body[data-theme='light']
+    .pws-page
+    .pws-hero {
+    border-radius:
+      18px 18px 38px 18px !important;
+
+    clip-path:
+      polygon(
+        0 0,
+        100% 0,
+        100% 86%,
+        95% 100%,
+        0 100%
+      ) !important;
+  }
+
+  body[data-theme='light']
+    .pws-page
+    .pws-hero::after {
+    top: -48px;
+    right: -130px;
+
+    width: 203px;
+    height: 147px;
+  }
+
+  body[data-theme='light']
+    .pws-page
+    .pws-overview-schema-grid
+    > .workspace-panel,
+  body[data-theme='light']
+    .pws-page
+    .pws-schemas-panel {
+    border-radius:
+      12px !important;
+  }
+}
+
+/* ==================================================
+   FINAL DARK THEME WORKSPACE DESIGN
+
+   Card 1:
+   Midnight Navy + Cut Corner + diagonal overlay
+
+   Cards 2, 3 and 4:
+   Dark Navy Tint
+
+   This block is scoped to dark mode only.
+   ================================================== */
+
+
+/* ==================================================
+   Dark theme page background
+   ================================================== */
+
+body[data-theme='dark'] .pws-page {
+  color: #f2f5fb;
+
+  background:
+    radial-gradient(
+      circle at 12% 0%,
+      rgba(89, 76, 173, 0.08),
+      transparent 30%
+    );
+}
+
+
+/* ==================================================
+   Card 1: Midnight Navy hero
+   ================================================== */
+
+body[data-theme='dark'] .pws-page .pws-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+
+  min-height: 154px;
+
+  color: #ffffff !important;
+
+  border:
+    1px solid #3d4963 !important;
+
+  /*
+   * Same card geometry as the light theme.
+   * The enlarged bottom-right radius supports
+   * the physical cut corner.
+   */
+  border-radius:
+    22px 22px 52px 22px !important;
+
+  /*
+   * Darker equivalent of the Midnight Navy
+   * light-theme gradient.
+   */
+  background:
+    linear-gradient(
+      135deg,
+      #101827 0%,
+      #19233a 58%,
+      #292441 100%
+    ) !important;
+
+  /*
+   * Physical bottom-right cut.
+   */
+  clip-path:
+    polygon(
+      0 0,
+      100% 0,
+      100% 82%,
+      97% 100%,
+      0 100%
+    ) !important;
+
+  box-shadow:
+    0 22px 58px rgba(0, 0, 0, 0.42),
+    0 8px 22px rgba(12, 18, 32, 0.32) !important;
+}
+
+
+/*
+ * Remove any older secondary hero decoration.
+ * Card 1 requires only one controlled diagonal overlay.
+ */
+
+body[data-theme='dark'] .pws-page .pws-hero::before {
+  content: none !important;
+  display: none !important;
+}
+
+
+/* ==================================================
+   Card 1 diagonal violet overlay
+   ================================================== */
+
+body[data-theme='dark'] .pws-page .pws-hero::after {
+  content: '';
+
+  position: absolute;
+  z-index: 0;
+
+  /*
+   * These dimensions produce the expected
+   * narrow diagonal overlay on the right.
+   */
+  top: -50px;
+  right: -65px;
+
+  width: 230px;
+  height: 170px;
+
+  transform:
+    rotate(-18deg) !important;
+
+  transform-origin:
+    center center;
+
+  /*
+   * Important resets prevent older CSS from
+   * turning this into a circle or rounded panel.
+   */
+  border: 0 !important;
+  border-radius: 0 !important;
+  clip-path: none !important;
+
+  opacity: 1;
+
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(127, 110, 194, 0.28),
+      rgba(102, 87, 169, 0.17) 48%,
+      transparent 66%
+    ) !important;
+}
+
+
+/* Keep all hero content above the overlay. */
+
+body[data-theme='dark'] .pws-page .pws-hero > * {
+  position: relative;
+  z-index: 2;
+}
+
+
+/* Hero project name. */
+
+body[data-theme='dark'] .pws-page .pws-hero h1 {
+  color: #ffffff !important;
+
+  text-shadow:
+    0 2px 14px rgba(0, 0, 0, 0.28);
+}
+
+
+/* Hero supporting description. */
+
+body[data-theme='dark'] .pws-page .pws-hero p {
+  color: #cbd4e2 !important;
+}
+
+
+/* Project Workspace label. */
+
+body[data-theme='dark']
+  .pws-page
+  .pws-hero
+  .hero-kicker {
+  color: #eeeaff !important;
+
+  border:
+    1px solid rgba(217, 209, 255, 0.17) !important;
+
+  background:
+    rgba(205, 194, 255, 0.09) !important;
+
+  backdrop-filter:
+    blur(10px);
+}
+
+
+/* Active status badge. */
+
+body[data-theme='dark']
+  .pws-page
+  .pws-hero
+  .pws-status-badge {
+  color: #71e2ae !important;
+
+  border-color:
+    rgba(83, 211, 153, 0.34) !important;
+
+  background:
+    rgba(40, 177, 117, 0.13) !important;
+
+  backdrop-filter:
+    blur(10px);
+}
+
+
+/* Inactive project status. */
+
+body[data-theme='dark']
+  .pws-page
+  .pws-hero
+  .pws-status-badge--inactive {
+  color: #bdc7d6 !important;
+
+  border-color:
+    rgba(189, 199, 214, 0.20) !important;
+
+  background:
+    rgba(189, 199, 214, 0.08) !important;
+}
+
+
+/* Archived project status. */
+
+body[data-theme='dark']
+  .pws-page
+  .pws-hero
+  .pws-status-badge--archived {
+  color: #aeb7c7 !important;
+
+  border-color:
+    rgba(174, 183, 199, 0.18) !important;
+
+  background:
+    rgba(174, 183, 199, 0.06) !important;
+}
+
+
+/* ==================================================
+   Cards 2, 3 and 4: Dark Navy Tint
+   ================================================== */
+
+/*
+ * Card 2: Project details
+ * Card 3: Upload Schema
+ * Card 4: Uploaded schemas
+ */
+
+body[data-theme='dark']
+  .pws-page
+  .pws-overview-schema-grid
+  > .workspace-panel,
+body[data-theme='dark']
+  .pws-page
+  .pws-schemas-panel {
+  color: #f2f5fb !important;
+
+  border:
+    1px solid #34415a !important;
+
+  /*
+   * This slightly lighter navy top edge
+   * connects the cards to the hero.
+   */
+  border-top:
+    3px solid #4b5875 !important;
+
+  border-radius:
+    14px !important;
+
+  background:
+    #151e2d !important;
+
+  box-shadow:
+    0 17px 42px rgba(0, 0, 0, 0.31),
+    0 4px 12px rgba(8, 13, 22, 0.22) !important;
+
+  backdrop-filter:
+    none !important;
+}
+
+
+/* Card titles and primary values. */
+
+body[data-theme='dark']
+  .pws-page
+  .pws-overview-schema-grid
+  .panel-title,
+body[data-theme='dark']
+  .pws-page
+  .pws-schemas-panel
+  .panel-title,
+body[data-theme='dark']
+  .pws-page
+  .pws-overview-schema-grid
+  .detail-value,
+body[data-theme='dark']
+  .pws-page
+  .pws-schemas-panel
+  .schema-name {
+  color: #f2f5fb !important;
+}
+
+
+/* Descriptions and labels. */
+
+body[data-theme='dark']
+  .pws-page
+  .pws-overview-schema-grid
+  .panel-description,
+body[data-theme='dark']
+  .pws-page
+  .pws-schemas-panel
+  .panel-description,
+body[data-theme='dark']
+  .pws-page
+  .pws-overview-schema-grid
+  .detail-label,
+body[data-theme='dark']
+  .pws-page
+  .pws-schemas-panel
+  .schema-card-subtitle {
+  color: #94a1b5 !important;
+}
+
+
+/* Project details divider lines. */
+
+body[data-theme='dark']
+  .pws-page
+  .pws-overview-schema-grid
+  .detail-row {
+  border-bottom-color:
+    #2c384d !important;
+}
+
+
+body[data-theme='dark']
+  .pws-page
+  .pws-overview-schema-grid
+  .detail-row:last-child {
+  border-bottom-color:
+    transparent !important;
+}
+
+
+/* Project ID styling. */
+
+body[data-theme='dark']
+  .pws-page
+  .pws-project-id {
+  color: #aeb9ca !important;
+}
+
+
+/* ==================================================
+   Card 3: Dark upload surface
+   ================================================== */
+
+body[data-theme='dark']
+  .pws-page
+  .pws-overview-schema-grid
+  .upload-zone,
+body[data-theme='dark']
+  .pws-page
+  .pws-overview-schema-grid
+  .dropzone {
+  color: #f2f5fb !important;
+
+  border-color:
+    #465675 !important;
+
+  background:
+    #101827 !important;
+}
+
+
+/* Upload-area hover and drag state. */
+
+body[data-theme='dark']
+  .pws-page
+  .pws-overview-schema-grid
+  .dropzone:hover,
+body[data-theme='dark']
+  .pws-page
+  .pws-overview-schema-grid
+  .dropzone--drag-over {
+  border-color:
+    #7568c8 !important;
+
+  background:
+    #17223a !important;
+
+  box-shadow:
+    inset 0 0 0 1px rgba(178, 151, 245, 0.10);
+}
+
+
+/* Selected-file state. */
+
+body[data-theme='dark']
+  .pws-page
+  .pws-overview-schema-grid
+  .dropzone--has-file {
+  border-color:
+    #68789b !important;
+
+  background:
+    #151f31 !important;
+}
+
+
+/* Upload icon surface. */
+
+body[data-theme='dark']
+  .pws-page
+  .pws-overview-schema-grid
+  .dropzone-icon,
+body[data-theme='dark']
+  .pws-page
+  .pws-overview-schema-grid
+  .upload-icon {
+  color: #b79cf8 !important;
+
+  border:
+    1px solid rgba(183, 156, 248, 0.15);
+
+  background:
+    #252443 !important;
+}
+
+
+/* Upload title. */
+
+body[data-theme='dark']
+  .pws-page
+  .pws-overview-schema-grid
+  .dropzone-title,
+body[data-theme='dark']
+  .pws-page
+  .pws-overview-schema-grid
+  .upload-zone strong {
+  color: #f2f5fb !important;
+}
+
+
+/* Upload description. */
+
+body[data-theme='dark']
+  .pws-page
+  .pws-overview-schema-grid
+  .dropzone-subtitle,
+body[data-theme='dark']
+  .pws-page
+  .pws-overview-schema-grid
+  .upload-zone small {
+  color: #94a1b5 !important;
+}
+
+
+/* Selected file information. */
+
+body[data-theme='dark']
+  .pws-page
+  .dropzone-file-selected {
+  color: #e5eaf2 !important;
+
+  border-color:
+    #34415a !important;
+
+  background:
+    #151e2d !important;
+}
+
+
+/* File-type chips. */
+
+body[data-theme='dark']
+  .pws-page
+  .dropzone-types span {
+  color: #bcc6d5 !important;
+
+  border-color:
+    #35425a !important;
+
+  background:
+    #182235 !important;
+}
+
+
+/* File input native text surface. */
+
+body[data-theme='dark']
+  .pws-page
+  input[type='file'] {
+  color: #aab5c6;
+}
+
+
+/* ==================================================
+   Card 4: Search and controls
+   ================================================== */
+
+body[data-theme='dark']
+  .pws-page
+  .pws-schema-search {
+  color: #f2f5fb !important;
+
+  border-color:
+    #3c4a64 !important;
+
+  background:
+    #101827 !important;
+}
+
+
+body[data-theme='dark']
+  .pws-page
+  .pws-schema-search::placeholder {
+  color: #8491a6 !important;
+}
+
+
+body[data-theme='dark']
+  .pws-page
+  .pws-schema-search:focus {
+  border-color:
+    #8c78dd !important;
+
+  background:
+    #151e2d !important;
+
+  box-shadow:
+    0 0 0 3px rgba(178, 151, 245, 0.13) !important;
+}
+
+
+/* Refresh and secondary controls. */
+
+body[data-theme='dark']
+  .pws-page
+  .pws-schema-header-actions
+  .refresh-btn {
+  color: #cbd4e2 !important;
+
+  border-color:
+    #3c4a64 !important;
+
+  background:
+    #182235 !important;
+}
+
+
+body[data-theme='dark']
+  .pws-page
+  .pws-schema-header-actions
+  .refresh-btn:hover {
+  color: #ffffff !important;
+
+  border-color:
+    #657495 !important;
+
+  background:
+    #202c42 !important;
+}
+
+
+/* Generate Tables primary action. */
+
+body[data-theme='dark']
+  .pws-page
+  .pws-schema-header-actions
+  .primary-btn {
+  color: #ffffff !important;
+
+  border-color:
+    #7965c7 !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #6f5bb8,
+      #8d72db
+    ) !important;
+
+  box-shadow:
+    0 8px 20px rgba(105, 83, 184, 0.26);
+}
+
+
+body[data-theme='dark']
+  .pws-page
+  .pws-schema-header-actions
+  .primary-btn:hover {
+  background:
+    linear-gradient(
+      135deg,
+      #7b66c7,
+      #9a80e6
+    ) !important;
+
+  box-shadow:
+    0 12px 26px rgba(105, 83, 184, 0.34);
+}
+
+
+/* ==================================================
+   Card 4: Generation status panel
+   ================================================== */
+
+body[data-theme='dark']
+  .pws-page
+  .generate-status-card {
+  color: #f2f5fb !important;
+
+  border:
+    1px solid #40506d !important;
+
+  border-radius:
+    12px !important;
+
+  background:
+    #1b2638 !important;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+
+/* Running state. */
+
+body[data-theme='dark']
+  .pws-page
+  .generate-status-card--running {
+  border-color:
+    rgba(130, 116, 213, 0.62) !important;
+}
+
+
+/* Completed state. */
+
+body[data-theme='dark']
+  .pws-page
+  .generate-status-card--done {
+  border-color:
+    rgba(56, 190, 131, 0.50) !important;
+}
+
+
+/* Failed state. */
+
+body[data-theme='dark']
+  .pws-page
+  .generate-status-card--failed {
+  border-color:
+    rgba(235, 91, 111, 0.56) !important;
+}
+
+
+/* Status title. */
+
+body[data-theme='dark']
+  .pws-page
+  .generate-status-header h3 {
+  color: #f2f5fb !important;
+}
+
+
+/* Current status description. */
+
+body[data-theme='dark']
+  .pws-page
+  .generate-status-header p {
+  color: #94a1b5 !important;
+}
+
+
+/* Progress percentage. */
+
+body[data-theme='dark']
+  .pws-page
+  .generate-status-percent {
+  color: #b99df5 !important;
+}
+
+
+/* Progress background. */
+
+body[data-theme='dark']
+  .pws-page
+  .generate-progress-track {
+  background:
+    #101827 !important;
+}
+
+
+/* Progress fill. */
+
+body[data-theme='dark']
+  .pws-page
+  .generate-progress-fill {
+  background:
+    linear-gradient(
+      90deg,
+      #596ca0,
+      #8d72db
+    ) !important;
+
+  box-shadow:
+    0 0 12px rgba(141, 114, 219, 0.22);
+}
+
+
+/* Generation error. */
+
+body[data-theme='dark']
+  .pws-page
+  .generate-status-error {
+  color: #ffb7c2 !important;
+
+  border:
+    1px solid rgba(235, 91, 111, 0.30);
+
+  background:
+    rgba(148, 42, 60, 0.18) !important;
+}
+
+
+/* ==================================================
+   Uploaded schema cards inside Card 4
+   ================================================== */
+
+body[data-theme='dark']
+  .pws-page
+  .schema-card-item--compact {
+  color: #f2f5fb !important;
+
+  border:
+    1px solid #35425a !important;
+
+  background:
+    #111a28 !important;
+
+  box-shadow:
+    0 10px 27px rgba(0, 0, 0, 0.25) !important;
+}
+
+
+body[data-theme='dark']
+  .pws-page
+  .schema-card-item--compact:hover {
+  border-color:
+    #617092 !important;
+
+  background:
+    #162134 !important;
+
+  box-shadow:
+    0 15px 34px rgba(0, 0, 0, 0.32) !important;
+}
+
+
+/* Compact card decorative corner. */
+
+body[data-theme='dark']
+  .pws-page
+  .schema-card-item--compact::before {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(131, 109, 213, 0.14),
+      transparent 72%
+    ) !important;
+}
+
+
+/* Schema name. */
+
+body[data-theme='dark']
+  .pws-page
+  .schema-card-item--compact
+  .schema-name {
+  color: #f2f5fb !important;
+}
+
+
+/* Schema subtitle. */
+
+body[data-theme='dark']
+  .pws-page
+  .schema-card-item--compact
+  .schema-card-subtitle {
+  color: #8f9db2 !important;
+}
+
+
+/* Schema type badge. */
+
+body[data-theme='dark']
+  .pws-page
+  .schema-card-item--compact
+  .type-badge {
+  color: #c6b2ff !important;
+
+  border:
+    1px solid rgba(168, 139, 232, 0.20);
+
+  background:
+    rgba(125, 99, 197, 0.16) !important;
+}
+
+
+/* Schema metadata chips. */
+
+body[data-theme='dark']
+  .pws-page
+  .schema-meta--compact
+  > span {
+  color: #b3bfd0 !important;
+
+  border:
+    1px solid #303c52;
+
+  background:
+    #192437 !important;
+}
+
+
+/* Schema-card secondary button. */
+
+body[data-theme='dark']
+  .pws-page
+  .schema-card-item--compact
+  .secondary-btn {
+  color: #d5dce8 !important;
+
+  border-color:
+    #3c4961 !important;
+
+  background:
+    #182235 !important;
+}
+
+
+/* Schema-card primary button. */
+
+body[data-theme='dark']
+  .pws-page
+  .schema-card-item--compact
+  .primary-btn {
+  color: #ffffff !important;
+
+  border-color:
+    #7561c2 !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #6855ae,
+      #8670d1
+    ) !important;
+}
+
+
+/* ==================================================
+   Empty and error states in dark mode
+   ================================================== */
+
+body[data-theme='dark']
+  .pws-page
+  .empty-state {
+  color: #94a1b5 !important;
+
+  border-color:
+    #34415a !important;
+
+  background:
+    #101827 !important;
+}
+
+
+body[data-theme='dark']
+  .pws-page
+  .error-box {
+  color: #ffbac5 !important;
+
+  border:
+    1px solid rgba(235, 91, 111, 0.28);
+
+  background:
+    rgba(148, 42, 60, 0.17) !important;
+}
+
+
+/* ==================================================
+   Dark-theme responsive adjustments
+   ================================================== */
+
+@media (max-width: 900px) {
+  body[data-theme='dark']
+    .pws-page
+    .pws-hero {
+    min-height: 144px;
+  }
+
+  body[data-theme='dark']
+    .pws-page
+    .pws-hero::after {
+    top: -50px;
+    right: -87px;
+
+    width: 217px;
+    height: 157px;
+  }
+}
+
+
+@media (max-width: 720px) {
+  body[data-theme='dark']
+    .pws-page
+    .pws-hero {
+    min-height: 133px;
+
+    border-radius:
+      18px 18px 38px 18px !important;
+
+    clip-path:
+      polygon(
+        0 0,
+        100% 0,
+        100% 86%,
+        95% 100%,
+        0 100%
+      ) !important;
+  }
+
+  body[data-theme='dark']
+    .pws-page
+    .pws-hero::after {
+    top: -48px;
+    right: -130px;
+
+    width: 203px;
+    height: 147px;
+  }
+
+  body[data-theme='dark']
+    .pws-page
+    .pws-overview-schema-grid
+    > .workspace-panel,
+  body[data-theme='dark']
+    .pws-page
+    .pws-schemas-panel {
+    border-radius:
+      12px !important;
+  }
+}
+
+/* ==================================================
+   Uploaded schema attribute popup
+   ================================================== */
+
+/* Remove the third Rows metadata bar through JSX. */
+
+.schema-card-item--compact {
+  min-height: 176px;
+
+  /*
+   * The popup must be allowed to extend outside
+   * the uploaded entity card.
+   */
+  overflow: visible;
+}
+
+
+/* Retain the decorative shape inside the card. */
+
+.schema-card-item--compact::before {
+  overflow: hidden;
+}
+
+
+/* Two metadata rows: Fields and Status. */
+
+.schema-card-item--compact
+.schema-meta--compact {
+  display: grid;
+  grid-template-columns: 1fr;
+
+  gap: 7px;
+  margin-top: 14px;
+}
+
+
+.schema-card-item--compact
+.schema-meta--compact
+> span {
+  width: 100%;
+  min-height: 25px;
+  padding: 5px 8px;
+
+  display: flex;
+  align-items: center;
+
+  border:
+    1px solid var(--border-color);
+
+  border-radius: 6px;
+
+  font-size: 9px;
+}
+
+
+/* Action area. */
+
+.schema-card-item--compact
+.schema-actions--compact {
+  right: 14px;
+  bottom: 12px;
+  left: 14px;
+
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+
+  gap: 7px;
+}
+
+
+.schema-card-item--compact
+.schema-actions--compact
+button {
+  min-width: 0;
+  min-height: 32px;
+  padding: 0 9px;
+
+  white-space: nowrap;
+
+  font-size: 9px;
+}
+
+
+/* The popup uses this element as its anchor. */
+
+.schema-attributes-control {
+  position: relative;
+
+  display: inline-flex;
+  min-width: 0;
+
+  /*
+   * Prevent a gap between the button and popup
+   * from closing the popup while moving upward.
+   */
+  padding-top: 1px;
+}
+
+
+.schema-attributes-btn {
+  position: relative;
+  z-index: 2;
+}
+
+
+.schema-attributes-btn--active {
+  color: #ffffff !important;
+
+  border-color:
+    var(--schema-primary) !important;
+
+  background:
+    var(--schema-primary) !important;
+}
+
+
+.schema-attributes-btn:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
+
+/* ==================================================
+   Anchored popover
+   ================================================== */
+
+.schema-attributes-popup {
+  position: absolute;
+  z-index: 1000;
+
+  /*
+   * Opens above the View Attributes button.
+   */
+  right: 50%;
+  bottom: calc(100% + 10px);
+
+  width: min(330px, calc(100vw - 36px));
+  max-height: 310px;
+
+  overflow: visible;
+
+  transform:
+    translateX(50%);
+
+  border:
+    1px solid var(--border-color);
+
+  border-radius: 12px;
+
+  background:
+    var(--card-bg);
+
+  box-shadow:
+    0 20px 52px rgba(0, 0, 0, 0.24);
+
+  animation:
+    schema-attributes-pop-in 120ms ease-out;
+}
+
+
+/*
+ * Invisible hover bridge.
+ * This prevents the popup from closing while
+ * the pointer moves from button to popup.
+ */
+
+.schema-attributes-popup::before {
+  content: '';
+
+  position: absolute;
+
+  right: 0;
+  bottom: -12px;
+  left: 0;
+
+  height: 12px;
+
+  background: transparent;
+}
+
+
+/* Popup arrow. */
+
+.schema-attributes-popup-arrow {
+  position: absolute;
+
+  right: 50%;
+  bottom: -6px;
+
+  width: 11px;
+  height: 11px;
+
+  border-right:
+    1px solid var(--border-color);
+
+  border-bottom:
+    1px solid var(--border-color);
+
+  background:
+    var(--card-bg);
+
+  transform:
+    translateX(50%)
+    rotate(45deg);
+}
+
+
+@keyframes schema-attributes-pop-in {
+  from {
+    opacity: 0;
+
+    transform:
+      translateX(50%)
+      translateY(5px)
+      scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateX(50%)
+      translateY(0)
+      scale(1);
+  }
+}
+
+
+/* Popup header. */
+
+.schema-attributes-header {
+  min-height: 44px;
+  padding: 9px 11px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  border-bottom:
+    1px solid var(--border-color);
+
+  border-radius:
+    12px 12px 0 0;
+
+  background:
+    var(--muted-bg);
+}
+
+
+.schema-attributes-header > div {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+}
+
+
+.schema-attributes-header strong {
+  color: var(--text-main);
+
+  font-size: 11px;
+  font-weight: 900;
+}
+
+
+.schema-attributes-header span {
+  color: var(--text-muted);
+
+  font-size: 9px;
+}
+
+
+.schema-attributes-close {
+  width: 25px;
+  height: 25px;
+  padding: 0;
+
+  display: grid;
+  place-items: center;
+
+  color: var(--text-muted);
+
+  border:
+    1px solid var(--border-color);
+
+  border-radius: 6px;
+
+  background:
+    var(--card-bg);
+
+  cursor: pointer;
+
+  font-size: 16px;
+  line-height: 1;
+}
+
+
+.schema-attributes-close:hover {
+  color: var(--text-main);
+
+  border-color:
+    var(--schema-primary);
+
+  background:
+    var(--schema-primary-soft);
+}
+
+
+/* Scrollable attribute content. */
+
+.schema-attributes-list {
+  max-height: 250px;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  border-radius:
+    0 0 12px 12px;
+}
+
+
+.schema-attributes-loading,
+.schema-attributes-empty {
+  margin: 0;
+  padding: 24px 12px;
+
+  color: var(--text-muted);
+
+  text-align: center;
+
+  font-size: 10px;
+}
+
+.schema-attributes-error {
+  margin: 0;
+  padding: 24px 12px;
+
+  color: #f87171;
+
+  text-align: center;
+
+  font-size: 11px;
+  font-weight: 500;
+}
+
+body[data-theme='light'] .schema-attributes-error {
+  color: #b91c1c;
+}
+
+/* Attribute rows. */
+
+.schema-attribute-row {
+  min-height: 39px;
+  padding: 8px 11px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  border-bottom:
+    1px solid var(--border-color);
+}
+
+
+.schema-attribute-row:last-child {
+  border-bottom: 0;
+}
+
+
+.schema-attribute-main,
+.schema-attribute-details {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 6px;
+}
+
+
+.schema-attribute-main {
+  flex: 1;
+}
+
+
+.schema-attribute-details {
+  flex-shrink: 0;
+  justify-content: flex-end;
+}
+
+
+.schema-attribute-icon {
+  width: 12px;
+
+  color: var(--text-muted);
+
+  text-align: center;
+
+  font-size: 10px;
+}
+
+
+.schema-attribute-icon--key {
+  color: #e5ad3d;
+}
+
+
+.schema-attribute-name {
+  overflow: hidden;
+
+  color: var(--text-main);
+
+  background: transparent;
+
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    monospace;
+
+  font-size: 9px;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+.schema-attribute-type {
+  padding: 3px 6px;
+
+  color: var(--schema-primary);
+
+  border-radius: 999px;
+
+  background:
+    var(--schema-primary-soft);
+
+  font-size: 8px;
+  font-weight: 800;
+
+  text-transform: lowercase;
+}
+
+
+.schema-constraint-badge {
+  padding: 3px 5px;
+
+  color: var(--text-muted);
+
+  border:
+    1px solid var(--border-color);
+
+  border-radius: 4px;
+
+  background:
+    var(--muted-bg);
+
+  font-size: 7px;
+  font-weight: 800;
+}
+
+
+/* ==================================================
+   Light Navy Tint popup
+   ================================================== */
+
+body[data-theme='light']
+.pws-page
+.schema-attributes-popup {
+  border-color: #b7c1d7;
+
+  background: #f7f8fc;
+
+  box-shadow:
+    0 20px 52px rgba(35, 48, 76, 0.20);
+}
+
+
+body[data-theme='light']
+.pws-page
+.schema-attributes-popup-arrow {
+  border-color: #b7c1d7;
+
+  background: #f7f8fc;
+}
+
+
+body[data-theme='light']
+.pws-page
+.schema-attributes-header {
+  border-bottom-color: #d5dbe9;
+
+  background: #e9edf7;
+}
+
+
+body[data-theme='light']
+.pws-page
+.schema-attribute-row {
+  border-bottom-color: #d5dbe9;
+}
+
+
+body[data-theme='light']
+.pws-page
+.schema-attribute-name {
+  color: #1f2638;
+}
+
+
+/* ==================================================
+   Dark Navy Tint popup
+   ================================================== */
+
+body[data-theme='dark']
+.pws-page
+.schema-attributes-popup {
+  border-color: #43516c;
+
+  background: #111a28;
+
+  box-shadow:
+    0 24px 58px rgba(0, 0, 0, 0.48);
+}
+
+
+body[data-theme='dark']
+.pws-page
+.schema-attributes-popup-arrow {
+  border-color: #43516c;
+
+  background: #111a28;
+}
+
+
+body[data-theme='dark']
+.pws-page
+.schema-attributes-header {
+  border-bottom-color: #2c384d;
+
+  background: #1b2638;
+}
+
+
+body[data-theme='dark']
+.pws-page
+.schema-attributes-close {
+  color: #94a1b5;
+
+  border-color: #40506d;
+
+  background: #151e2d;
+}
+
+
+body[data-theme='dark']
+.pws-page
+.schema-attribute-row {
+  border-bottom-color: #2c384d;
+}
+
+
+body[data-theme='dark']
+.pws-page
+.schema-attribute-name {
+  color: #f2f5fb;
+}
+
+
+body[data-theme='dark']
+.pws-page
+.schema-constraint-badge {
+  color: #aeb9ca;
+
+  border-color: #35425a;
+
+  background: #182235;
+}
+
+
+/* ==================================================
+   Mobile popup
+   ================================================== */
+
+@media (max-width: 680px) {
+  .schema-card-item--compact
+  .schema-actions--compact {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .schema-card-item--compact
+  .schema-actions--compact
+  > button,
+  .schema-attributes-control,
+  .schema-attributes-btn {
+    width: 100%;
+  }
+
+  .schema-attributes-popup {
+    right: 0;
+    left: 0;
+
+    width: min(330px, calc(100vw - 48px));
+
+    transform: none;
+  }
+
+  .schema-attributes-popup-arrow {
+    right: 50%;
+
+    transform:
+      translateX(50%)
+      rotate(45deg);
+  }
+
+  @keyframes schema-attributes-pop-in {
+    from {
+      opacity: 0;
+
+      transform:
+        translateY(5px)
+        scale(0.98);
+    }
+
+    to {
+      opacity: 1;
+
+      transform:
+        translateY(0)
+        scale(1);
+    }
+  }
+}
+
+/* ==================================================
+   FINAL PATCH
+   1. Light-mode Card 1: Lavender Pearl
+   2. Remove leaked compact-card triangle pattern
+   3. Portal-based attributes popup below the button
+   ================================================== */
+
+/* ---------- Card 1: Lavender Pearl, light mode only ---------- */
+
+body[data-theme='light'] .pws-page .pws-hero {
+  color: #29263f !important;
+  border: 1px solid #bbb6d5 !important;
+  background:
+    linear-gradient(
+      135deg,
+      #f0effb 0%,
+      #e6e3f6 58%,
+      #ddd7f0 100%
+    ) !important;
+  box-shadow:
+    0 18px 42px rgba(70, 61, 111, 0.14) !important;
+}
+
+body[data-theme='light'] .pws-page .pws-hero::after {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(125, 99, 197, 0.18),
+      transparent 65%
+    ) !important;
+}
+
+body[data-theme='light'] .pws-page .pws-hero h1 {
+  color: #29263f !important;
+  text-shadow: none !important;
+}
+
+body[data-theme='light'] .pws-page .pws-hero p {
+  color: #625d79 !important;
+}
+
+body[data-theme='light'] .pws-page .pws-hero .hero-kicker {
+  color: #594f75 !important;
+  border-color: #c6c0dc !important;
+  background: rgba(255, 255, 255, 0.62) !important;
+}
+
+body[data-theme='light'] .pws-page .pws-hero .pws-status-badge {
+  color: #177a56 !important;
+  border-color: rgba(31, 145, 101, 0.28) !important;
+  background: rgba(40, 177, 117, 0.10) !important;
+}
+
+/* ---------- Remove leaked pattern from uploaded schema cards ---------- */
+
+.pws-page .schema-card-item--compact::before,
+.pws-page .schema-card-item--compact::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+}
+
+.pws-page .schema-card-item--compact {
+  overflow: hidden !important;
+  isolation: isolate;
+}
+
+/* ---------- Portal popup ---------- */
+
+.schema-attributes-control {
+  position: relative;
+  display: inline-flex;
+  min-width: 0;
+}
+
+.schema-attributes-popup {
+  position: fixed !important;
+  z-index: 10000 !important;
+  right: auto !important;
+  transform: none !important;
+  max-height: min(360px, calc(100vh - 32px));
+  overflow: hidden !important;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--card-bg);
+  box-shadow: 0 20px 48px rgba(35, 48, 76, 0.19);
+  animation: schema-attributes-portal-in 120ms ease-out;
+}
+
+.schema-attributes-popup::before,
+.schema-attributes-popup::after,
+.schema-attributes-popup-arrow {
+  content: none !important;
+  display: none !important;
+}
+
+@keyframes schema-attributes-portal-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.schema-attributes-list {
+  max-height: min(270px, calc(100vh - 150px));
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Portal is attached to body, so these selectors must not use .pws-page. */
+body[data-theme='light'] .schema-attributes-popup {
+  color: #1f2638;
+  border-color: #b7c1d7;
+  background: #f7f8fc;
+  box-shadow: 0 20px 48px rgba(35, 48, 76, 0.19);
+}
+
+body[data-theme='light']
+  .schema-attributes-popup
+  .schema-attributes-header {
+  border-bottom-color: #d5dbe9;
+  background: #e9edf7;
+}
+
+body[data-theme='light']
+  .schema-attributes-popup
+  .schema-attribute-row {
+  border-bottom-color: #d5dbe9;
+}
+
+body[data-theme='light']
+  .schema-attributes-popup
+  .schema-attribute-name {
+  color: #1f2638;
+}
+
+body[data-theme='dark'] .schema-attributes-popup {
+  color: #f2f5fb;
+  border-color: #43516c;
+  background: #111a28;
+  box-shadow: 0 24px 58px rgba(0, 0, 0, 0.48);
+}
+
+body[data-theme='dark']
+  .schema-attributes-popup
+  .schema-attributes-header {
+  border-bottom-color: #2c384d;
+  background: #1b2638;
+}
+
+body[data-theme='dark']
+  .schema-attributes-popup
+  .schema-attribute-row {
+  border-bottom-color: #2c384d;
+}
+
+body[data-theme='dark']
+  .schema-attributes-popup
+  .schema-attribute-name {
+  color: #f2f5fb;
+}
+
+@media (max-width: 680px) {
+  .schema-attributes-popup {
+    width: calc(100vw - 32px) !important;
+    max-width: 340px;
+  }
+}
+
+/* ==================================================
+   Card 1 triangle consistency across themes
+   ================================================== */
+
+/* Same desktop size and position in light and dark modes. */
+
+body[data-theme='light']
+.pws-page
+.pws-hero::after,
+body[data-theme='dark']
+.pws-page
+.pws-hero::after {
+  top: -50px !important;
+  right: -65px !important;
+
+  width: 230px !important;
+  height: 170px !important;
+
+  transform: rotate(-18deg) !important;
+  transform-origin: center center !important;
+
+  border: 0 !important;
+  border-radius: 0 !important;
+
+  clip-path: none !important;
+
+  opacity: 1 !important;
+  pointer-events: none !important;
+}
+
+
+/* Lavender Pearl triangle color in day mode. */
+
+body[data-theme='light']
+.pws-page
+.pws-hero::after {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(103, 84, 165, 0.20),
+      transparent 65%
+    ) !important;
+}
+
+
+/* Dark violet triangle color in night mode. */
+
+body[data-theme='dark']
+.pws-page
+.pws-hero::after {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(127, 110, 194, 0.28),
+      rgba(102, 87, 169, 0.17) 48%,
+      transparent 66%
+    ) !important;
+}
+
+
+/* Same tablet geometry in both themes. */
+
+@media (max-width: 900px) {
+  body[data-theme='light']
+  .pws-page
+  .pws-hero::after,
+  body[data-theme='dark']
+  .pws-page
+  .pws-hero::after {
+    top: -50px !important;
+    right: -87px !important;
+
+    width: 217px !important;
+    height: 157px !important;
+  }
+}
+
+
+/* Same mobile geometry in both themes. */
+
+@media (max-width: 720px) {
+  body[data-theme='light']
+  .pws-page
+  .pws-hero::after,
+  body[data-theme='dark']
+  .pws-page
+  .pws-hero::after {
+    top: -48px !important;
+    right: -130px !important;
+
+    width: 203px !important;
+    height: 147px !important;
+  }
+}
+
+/* Target KPIs & Metrics Card */
+.pws-kpi-card {
+  margin: 18px 0;
+  padding: 20px 24px;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  background: var(--card-solid);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pws-kpi-card .schema-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.pws-kpi-card .schema-card-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.pws-kpi-card .schema-card-desc {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.custom-kpi-input-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.custom-kpi-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 9px 14px;
+  background: var(--muted-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  color: var(--text-main);
+  font-size: 13px;
+  outline: none;
+}
+
+.custom-kpi-input:focus {
+  border-color: var(--schema-primary);
+  box-shadow: 0 0 0 3px var(--schema-primary-soft);
+}
+
+.custom-kpi-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.custom-kpi-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--schema-primary-soft);
+  color: var(--schema-primary);
+  font-size: 12.5px;
+  font-weight: 600;
+  border: 1px solid color-mix(in srgb, var(--schema-primary) 30%, transparent);
+}
+
+.custom-kpi-tag-remove {
+  background: transparent;
+  border: none;
+  color: currentColor;
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  padding: 0 2px;
+  opacity: 0.75;
+}
+
+.custom-kpi-tag-remove:hover {
+  opacity: 1;
+}
+
+.custom-kpi-empty-hint {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ==================================================
+   SCHEMA CARDS & ACTION BUTTONS LAYOUT FIX
+   ================================================== */
+
+.pws-compact-schema-grid,
+.schema-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+  gap: 16px !important;
+}
+
+.schema-card-item,
+.schema-card-item--compact {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 200px !important;
+  padding: 18px 20px !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 16px !important;
+  background: var(--card-solid, var(--muted-bg)) !important;
+  box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.04)) !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
+}
+
+.schema-card-item--compact::before,
+.schema-card-item--compact::after {
+  content: none !important;
+  display: none !important;
+}
+
+.schema-item-top {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  margin-bottom: 8px !important;
+}
+
+.schema-card-heading {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+.schema-card-heading .schema-name {
+  margin: 0 !important;
+  font-size: 15px !important;
+  font-weight: 750 !important;
+  line-height: 1.3 !important;
+  color: var(--text-main) !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.schema-card-heading .schema-card-subtitle {
+  margin: 4px 0 0 !important;
+  font-size: 12px !important;
+  color: var(--text-muted) !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.schema-meta,
+.schema-meta--compact {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin: 10px 0 !important;
+}
+
+.schema-meta > span,
+.schema-meta--compact > span {
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 4px 10px !important;
+  border-radius: 8px !important;
+  background: color-mix(in srgb, var(--muted-bg) 85%, var(--card-solid)) !important;
+  border: 1px solid var(--border-color) !important;
+  font-size: 11.5px !important;
+  color: var(--text-muted) !important;
+}
+
+.schema-meta strong,
+.schema-meta--compact strong {
+  color: var(--text-main) !important;
+  margin-right: 4px !important;
+}
+
+.schema-note {
+  margin: 4px 0 10px !important;
+  font-size: 12px !important;
+  color: var(--text-muted) !important;
+  font-style: italic !important;
+}
+
+/* In-flow action bar at bottom of card - never overlaps */
+.schema-actions,
+.schema-actions--compact,
+.schema-card-item--compact .schema-actions--compact {
+  position: static !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  margin-top: auto !important;
+  padding-top: 14px !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 8px !important;
+  width: 100% !important;
+  border-top: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent) !important;
+  box-sizing: border-box !important;
+}
+
+.schema-actions button,
+.schema-actions--compact button,
+.schema-card-item--compact .schema-actions--compact button,
+.schema-view-table-btn,
+.schema-attributes-btn,
+.schema-delete-btn {
+  min-width: 0 !important;
+  min-height: 32px !important;
+  height: 32px !important;
+  padding: 0 12px !important;
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  line-height: 30px !important;
+  border-radius: 8px !important;
+  white-space: nowrap !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  box-sizing: border-box !important;
+  flex: 0 1 auto !important;
+}
+
+.schema-attributes-control {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  flex: 0 1 auto !important;
+}
+
+.schema-delete-btn {
+  margin-left: auto !important;
+}
+

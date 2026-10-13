@@ -1,0 +1,15 @@
+.registry-asset-page {
+  padding-bottom: 40px;
+}
+
+.registry-asset-upload-wrap {
+  width: 100%;
+  max-width: 820px;
+  margin: 0 auto;
+}
+
+.registry-asset-upload-wrap .upload-panel,
+.registry-asset-upload-wrap .workspace-panel {
+  width: 100%;
+}
+

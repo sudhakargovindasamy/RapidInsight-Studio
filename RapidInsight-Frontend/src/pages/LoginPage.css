@@ -1,0 +1,570 @@
+/* ─────────────────────────────────────────────────
+   LoginPage — Dark Blue Geometry & White Card
+   ───────────────────────────────────────────────── */
+
+/* Full page background */
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Two-shade curved background */
+  background: radial-gradient(circle at 20% 120%, #2c3374 0%, #1a1e50 35%, #080a28 45%);
+  position: relative;
+  font-family: 'Inter', sans-serif;
+  overflow: hidden;
+}
+
+/* ── Container ───────────────────────────────────── */
+.login-card-container {
+  position: relative;
+  width: 1000px;  /* Increased size */
+  height: 600px;  /* Increased size */
+  background: #0c0e33; /* Very dark navy */
+  border-radius: 30px;
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.4);
+  display: flex;
+  z-index: 10;
+}
+
+/* ── Left Pane (Dark Blue Side) ──────────────────── */
+.login-left-pane {
+  position: relative;
+  width: 45%;
+  height: 100%;
+  border-radius: 30px 0 0 30px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 50px;
+}
+
+/* Decorative CSS Geometry */
+.deco-circle {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.deco-circle.top-left {
+  width: 180px;
+  height: 180px;
+  background: #171c4c;
+  top: -40px;
+  left: -40px;
+}
+
+.deco-circle.top-left-inner {
+  width: 120px;
+  height: 120px;
+  background: #1c215c;
+  top: -10px;
+  left: -10px;
+}
+
+.deco-circle.center-hollow {
+  width: 40px;
+  height: 40px;
+  border: 8px solid #23296c;
+  top: 35%;
+  right: 15%;
+}
+
+.deco-circle.bottom-left {
+  width: 140px;
+  height: 140px;
+  border: 15px solid #1a205a;
+  bottom: -40px;
+  left: -20px;
+}
+
+/* Simple CSS dots matrix via radial-gradient */
+.deco-dots {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  background-image: radial-gradient(#394488 2px, transparent 2px);
+  background-size: 15px 15px;
+}
+
+.deco-dots.top-right {
+  top: 60px;
+  right: 20px;
+}
+
+.deco-dots.bottom-right {
+  bottom: 80px;
+  right: 40px;
+}
+
+/* Text */
+.login-left-content {
+  position: relative;
+  z-index: 2;
+}
+
+.login-left-content .login-text-logo {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  margin-bottom: 24px;
+}
+
+.login-left-content .logo-primary {
+  font-size: 26px;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+.login-left-content .logo-secondary {
+  font-size: 26px;
+  font-weight: 900;
+  color: #9499ab; /* Muted gray/blue */
+}
+
+.main-greeting {
+  font-size: 34px;
+  font-weight: 400;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.main-greeting .highlight {
+  font-size: 40px;
+  font-weight: 800;
+  display: block;
+}
+
+
+/* ── Right Pane (White Form Card) ────────────────── */
+.login-right-pane {
+  position: absolute;
+  right: -20px; /* Overflows the container slightly on the right */
+  top: -20px;   /* Overflows top */
+  bottom: -20px;/* Overflows bottom */
+  width: calc(55% + 20px);
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: -15px 10px 40px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-form-wrapper {
+  width: 70%;
+  max-width: 360px;
+}
+
+.form-title {
+  text-align: center;
+  font-size: 32px;
+  font-weight: 600;
+  color: #0b0c2a;
+  margin-bottom: 45px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.login-form label {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 18px;
+}
+
+.login-form label span {
+  font-size: 12px;
+  font-weight: 500;
+  color: #9499ab;
+  margin-bottom: 8px;
+}
+
+.login-form input {
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid #d1d5e3;
+  font-size: 14px;
+  color: #1e293b;
+  outline: none;
+  background: transparent;
+  transition: border-color 0.2s;
+}
+
+.login-form input:focus {
+  border-color: #0c0e33;
+}
+
+.forgot-password {
+  text-align: right;
+  margin-top: -10px;
+  margin-bottom: 35px;
+}
+
+.forgot-password button {
+  background: none;
+  border: none;
+  color: #6a6c9e;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.forgot-password button:hover {
+  color: #0c0e33;
+  text-decoration: underline;
+}
+
+/* ── Submit Button ───────────────────────────────── */
+.login-submit-btn {
+  background: #08092a;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.login-submit-btn:hover {
+  transform: translateY(-2px);
+  background: #11144a;
+}
+
+.login-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* ── Footer ──────────────────────────────────────── */
+.login-footer {
+  text-align: center;
+  margin-top: 40px;
+}
+
+.login-footer p {
+  font-size: 11.5px;
+  color: #9499ab;
+  margin: 0;
+}
+
+.login-footer button {
+  background: none;
+  border: none;
+  color: #6a6c9e;
+  font-weight: 700;
+  font-size: 11.5px;
+  cursor: pointer;
+  padding: 0 0 0 4px;
+  transition: color 0.2s;
+}
+
+.login-footer button:hover {
+  color: #0c0e33;
+  text-decoration: underline;
+}
+
+/* ── Messages ────────────────────────────────────── */
+.login-error {
+  color: #ef4444;
+  font-size: 13px;
+  margin-bottom: 20px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.login-success {
+  color: #10b981;
+  font-size: 13px;
+  margin-bottom: 20px;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* ── Responsive ──────────────────────────────────── */
+@media (max-width: 900px) {
+  .login-card-container {
+    width: 90%;
+    height: auto;
+    flex-direction: column;
+    box-shadow: none;
+  }
+  
+  .login-left-pane {
+    width: 100%;
+    height: 250px;
+    border-radius: 30px 30px 0 0;
+    padding: 30px;
+  }
+
+  .login-right-pane {
+    position: relative;
+    width: 100%;
+    right: auto;
+    top: auto;
+    bottom: auto;
+    height: auto;
+    border-radius: 0 0 30px 30px;
+    padding: 40px 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  }
+}
+
+/* ==================================================
+   Final light-only login theme
+   Warm Lavender palette
+   ================================================== */
+
+.login-page {
+  min-height: 100vh;
+
+  color: #34293d;
+
+  /* New outer page background */
+  background:
+    radial-gradient(
+      circle at 26% 30%,
+      rgba(124, 94, 184, 0.13),
+      transparent 34%
+    ),
+    #eeeaf7 !important;
+}
+
+
+/* Main combined login card */
+
+.login-card-container {
+  color: #34293d;
+
+  background: transparent;
+
+  box-shadow:
+    0 30px 68px
+    rgba(52, 41, 61, 0.24);
+}
+
+
+/* ==================================================
+   Left branding panel
+   Darker gradient keeps white text readable
+   ================================================== */
+
+.login-left-pane {
+  background:
+    linear-gradient(
+      145deg,
+      #8669c5 0%,
+      #785daf 45%,
+      #604577 100%
+    ) !important;
+}
+
+
+/* Rapid remains white */
+
+.login-left-pane .logo-primary {
+  color: #ffffff !important;
+}
+
+
+/* Fix: Insight Studio was too gray and invisible */
+
+.login-left-pane .logo-secondary {
+  color: #e7def3 !important;
+}
+
+
+/* Main branding statement */
+
+.login-left-pane .main-greeting {
+  color: #ffffff !important;
+}
+
+.login-left-pane .highlight {
+  color: #ffffff !important;
+}
+
+
+/* Keep decorative elements visible */
+
+.login-left-pane .deco-dots {
+  color: #2f347d !important;
+  opacity: 0.82;
+}
+
+
+/* ==================================================
+   Right login panel
+   ================================================== */
+
+.login-right-pane {
+  color: #34293d !important;
+
+  background: #fffafd !important;
+
+  border:
+    1px solid
+    rgba(105, 72, 164, 0.20);
+
+  box-shadow:
+    0 25px 55px
+    rgba(52, 41, 61, 0.22);
+}
+
+
+/* Login heading */
+
+.form-title {
+  color: #2b2235 !important;
+}
+
+
+/* Username and Password labels */
+
+.login-form label span {
+  color: #63556d !important;
+
+  font-weight: 600;
+}
+
+
+/* Inputs */
+
+.login-form input {
+  color: #2b2235 !important;
+
+  caret-color: #6948a4;
+
+  background: #f1edf5 !important;
+
+  border-color: #b9abc5 !important;
+}
+
+.login-form input::placeholder {
+  color: #887b90 !important;
+
+  opacity: 1;
+}
+
+.login-form input:focus {
+  border-color: #6948a4 !important;
+
+  outline: none;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(105, 72, 164, 0.14);
+}
+
+
+/* Forgot-password link */
+
+.forgot-password button {
+  color: #6948a4 !important;
+}
+
+.forgot-password button:hover {
+  color: #4f327e !important;
+
+  text-decoration: underline;
+}
+
+
+/* Login button */
+
+.login-submit-btn {
+  color: #ffffff !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #8063c6,
+      #6c52b4
+    ) !important;
+
+  box-shadow:
+    0 12px 26px
+    rgba(105, 72, 164, 0.24);
+}
+
+.login-submit-btn:hover {
+  background:
+    linear-gradient(
+      135deg,
+      #7355bb,
+      #5e429f
+    ) !important;
+
+  transform: translateY(-2px);
+}
+
+
+/* Footer text */
+
+.login-footer p {
+  color: #736679 !important;
+}
+
+.login-footer button {
+  color: #6948a4 !important;
+}
+
+.login-footer button:hover {
+  color: #4f327e !important;
+
+  text-decoration: underline;
+}
+
+
+/* Messages */
+
+.login-error {
+  color: #b4233e !important;
+}
+
+.login-success {
+  color: #157a58 !important;
+}
+
+
+/* ==================================================
+   Keep login light-only regardless of stored theme
+   ================================================== */
+
+body[data-theme='dark'] .login-page,
+body[data-theme='light'] .login-page {
+  color: #34293d;
+
+  background:
+    radial-gradient(
+      circle at 26% 30%,
+      rgba(124, 94, 184, 0.13),
+      transparent 34%
+    ),
+    #eeeaf7 !important;
+}
+
+body[data-theme='dark'] .login-left-pane,
+body[data-theme='light'] .login-left-pane {
+  background:
+    linear-gradient(
+      145deg,
+      #8669c5 0%,
+      #785daf 45%,
+      #604577 100%
+    ) !important;
+}
+
+body[data-theme='dark'] .login-right-pane,
+body[data-theme='light'] .login-right-pane {
+  color: #34293d !important;
+
+  background: #fffafd !important;
+}

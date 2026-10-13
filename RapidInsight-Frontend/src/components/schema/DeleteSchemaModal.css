@@ -1,0 +1,78 @@
+.delete-schema-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.62);
+  backdrop-filter: blur(8px);
+}
+
+.delete-schema-modal {
+  width: min(460px, 100%);
+  border-radius: 22px;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  box-shadow: var(--shadow-main);
+  padding: 24px;
+}
+
+.delete-schema-modal h3 {
+  margin: 0 0 8px;
+  color: var(--text-main);
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.delete-schema-modal p {
+  margin: 0 0 14px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.delete-schema-name {
+  padding: 11px 12px;
+  border-radius: 12px;
+  background: var(--muted-bg);
+  color: var(--text-main);
+  font-size: 13px;
+  font-weight: 800;
+  word-break: break-all;
+}
+
+.delete-schema-warning {
+  margin-top: 12px;
+  padding: 11px 12px;
+  border-radius: 12px;
+  background: rgba(239, 68, 68, 0.12);
+  color: #b91c1c;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.delete-schema-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.danger-btn {
+  border: none;
+  border-radius: 12px;
+  padding: 10px 16px;
+  background: #dc2626;
+  color: white;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.danger-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.danger-btn:hover:not(:disabled) {
+  background: #b91c1c;
+}

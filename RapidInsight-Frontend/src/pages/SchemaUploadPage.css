@@ -1,0 +1,41 @@
+/* ─────────────────────────────────────────────────
+   SchemaUploadPage — page-specific styles only
+   CSS variables and base classes are in index.css
+   ───────────────────────────────────────────────── */
+
+/* .schema-page is the content wrapper — AppLayout owns bg/theme */
+.schema-page {
+  width: 100%;
+  color: var(--text-main);
+}
+
+/* Responsive overrides specific to SchemaUploadPage */
+@media (max-width: 1180px) {
+  .grid-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .schemas-toolbar {
+    flex-direction: column;
+  }
+
+  .refresh-btn {
+    width: 100%;
+  }
+
+  .detail-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .schema-item-top {
+    flex-direction: column;
+  }
+
+  .storage-path-pill {
+    white-space: normal;
+    word-break: break-all;
+  }
+}

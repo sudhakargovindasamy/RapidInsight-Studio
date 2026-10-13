@@ -1,0 +1,21 @@
+/* CreateProjectModal close button */
+.cpm-close-btn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--muted-bg);
+  color: var(--text-muted);
+  font-size: 16px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  transition: 0.18s ease;
+}
+
+.cpm-close-btn:hover {
+  background: var(--schema-danger-soft);
+  border-color: var(--schema-danger);
+  color: var(--schema-danger);
+}

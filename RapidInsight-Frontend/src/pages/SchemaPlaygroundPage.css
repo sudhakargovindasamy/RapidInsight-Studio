@@ -1,0 +1,95 @@
+.schema-playground-page {
+  min-height: 100%;
+  padding: 0 26px 36px;
+  color: var(--text-main);
+}
+
+.playground-hero {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 24px;
+  margin-bottom: 18px;
+  border: 1px solid rgba(101, 125, 183, 0.28);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 95% 0%, rgba(58, 169, 255, 0.28), transparent 32%),
+    linear-gradient(135deg, rgba(37, 99, 235, 0.28), rgba(15, 23, 42, 0.78));
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+  color: #ffffff;
+}
+
+.playground-eyebrow {
+  margin: 0 0 8px;
+  color: #8fb4ff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.playground-hero h1 {
+  margin: 0;
+  font-size: clamp(30px, 4vw, 52px);
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: #ffffff;
+}
+
+.playground-hero p:last-child {
+  max-width: 760px;
+  margin: 12px 0 0;
+  color: #bfdbfe;
+}
+
+.playground-error {
+  margin: 14px 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  border-radius: 14px;
+  background: rgba(127, 29, 29, 0.32);
+  color: #fecaca;
+}
+
+@media (max-width: 720px) {
+  .schema-playground-page {
+    padding: 16px;
+  }
+
+  .playground-hero {
+    flex-direction: column;
+  }
+}
+
+.schema-playground-page {
+  width: 100%;
+  min-height: 100%;
+  padding: 0;
+}
+
+.schema-playground-page .playground-canvas {
+  width: 100%;
+  min-height: calc(100dvh - 58px);
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.console-main:has(.schema-playground-page) {
+  overflow: hidden;
+}
+
+/* Project playground starts directly with the canvas; no project hero/card wrapper. */
+.schema-playground-page {
+  min-height: 100%;
+  padding: 0;
+  background: transparent;
+}
+
+.schema-playground-page > .hero-card,
+.schema-playground-page > .playground-hero {
+  display: none !important;
+}

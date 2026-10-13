@@ -1,0 +1,217 @@
+.dropzone-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.dropzone {
+  border: 2px dashed var(--border-default);
+  border-radius: var(--radius-lg);
+  background: var(--bg-elevated);
+  padding: var(--space-10) var(--space-8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  min-height: 180px;
+  position: relative;
+  outline: none;
+}
+
+.dropzone:hover,
+.dropzone:focus-visible {
+  border-color: var(--accent-primary);
+  background: rgba(108, 99, 255, 0.04);
+}
+
+.dropzone--drag-over {
+  border-color: var(--accent-primary);
+  background: rgba(108, 99, 255, 0.08);
+  box-shadow: 0 0 0 4px var(--accent-primary-glow);
+  transform: scale(1.005);
+}
+
+.dropzone--has-file {
+  cursor: default;
+  border-style: solid;
+  border-color: rgba(0, 212, 170, 0.35);
+  background: rgba(0, 212, 170, 0.04);
+}
+
+/* Empty state */
+.dropzone-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  text-align: center;
+}
+
+.dropzone-icon-ring {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-default);
+  background: var(--bg-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: all var(--transition-base);
+}
+
+.dropzone-icon-ring--active {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  background: rgba(108, 99, 255, 0.1);
+  box-shadow: var(--shadow-glow);
+}
+
+.dropzone-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.dropzone-heading {
+  font-size: var(--font-size-md);
+  font-weight: 500;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.dropzone-sub {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.dropzone-browse-link {
+  color: var(--accent-primary);
+  cursor: pointer;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* File selected state */
+.dropzone-file-selected {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+}
+
+.file-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.dropzone-file-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.dropzone-file-name {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropzone-file-size {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  margin: var(--space-1) 0 0;
+}
+
+.dropzone-remove-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--border-default);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.dropzone-remove-btn:hover {
+  background: rgba(255, 92, 114, 0.15);
+  color: var(--accent-danger);
+  border-color: rgba(255, 92, 114, 0.4);
+}
+
+/* Supported types */
+.dropzone-types {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.dropzone-types-label {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  margin-right: var(--space-1);
+}
+
+.dropzone-type-chip {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 2px var(--space-2);
+  font-family: monospace;
+  letter-spacing: 0.03em;
+}
+
+/* ── Error state ── */
+.dropzone--error {
+  border-color: rgba(255, 92, 114, 0.45);
+  background: rgba(255, 92, 114, 0.04);
+}
+
+.dropzone-icon-ring--error {
+  border-color: rgba(255, 92, 114, 0.45);
+  color: var(--accent-danger);
+  background: rgba(255, 92, 114, 0.08);
+}
+
+/* Inline validation error message */
+.dropzone-validation-error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: rgba(255, 92, 114, 0.08);
+  border: 1px solid rgba(255, 92, 114, 0.25);
+  color: var(--accent-danger);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+.dropzone-validation-error svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}

@@ -1,0 +1,46 @@
+.playground-info-wrap {
+  position: relative;
+  z-index: 20;
+}
+
+.playground-info-btn {
+  display: grid;
+  place-items: center;
+  width: 21px;
+  height: 21px;
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  color: var(--text-main);
+  background: var(--card-bg);
+  font-size: 11px;
+  font-weight: 900;
+  font-style: italic;
+  cursor: pointer;
+}
+
+.playground-info-popover {
+  position: absolute;
+  top: 52px;
+  right: 0;
+  width: min(360px, calc(100vw - 48px));
+  padding: 18px;
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  background: var(--card-solid);
+  box-shadow: var(--shadow-main);
+}
+
+.playground-info-popover h3 {
+  margin: 0 0 10px;
+  color: var(--text-main);
+}
+
+.playground-info-popover ol {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text-muted);
+}
+
+.playground-info-popover li + li {
+  margin-top: 8px;
+}

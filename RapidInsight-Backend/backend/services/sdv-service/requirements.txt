@@ -1,0 +1,11 @@
+# Verified against Python 3.14.3 on 2026-08-05: installs and runs cleanly.
+#
+# Pinned to a minor range because fitted synthesizers are stored as pickles, and
+# SDV pickles are not portable across major versions. A major bump invalidates
+# every cached model on disk.
+sdv>=1.37,<2.0
+
+fastapi>=0.115,<1.0
+uvicorn[standard]>=0.32,<1.0
+pydantic>=2.9,<3.0
+python-dotenv>=1.0,<2.0

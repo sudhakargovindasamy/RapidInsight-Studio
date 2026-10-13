@@ -1,0 +1,77 @@
+.report-chart-card {
+  min-width: 0;
+  padding: 22px;
+  border: 1px solid var(--border-color);
+  border-radius: 22px;
+  background: var(--card-solid);
+  box-shadow: var(--shadow-main);
+}
+
+.report-chart-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.report-chart-card__header h2 {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 17px;
+  font-weight: 850;
+  letter-spacing: -0.025em;
+}
+
+.report-chart-card__header p {
+  margin: 7px 0 0;
+  color: var(--text-muted);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.report-chart-card__type {
+  flex: 0 0 auto;
+  padding: 5px 9px;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  color: var(--schema-primary);
+  background: var(--schema-primary-soft);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.report-chart-card__canvas {
+  position: relative;
+  min-height: 330px;
+  height: 36vh;
+  max-height: 410px;
+}
+
+.report-chart-card__empty {
+  min-height: 250px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed var(--border-color);
+  border-radius: 16px;
+  color: var(--text-muted);
+  background: var(--muted-bg);
+  font-size: 13px;
+}
+
+@media (max-width: 680px) {
+  .report-chart-card {
+    padding: 18px;
+  }
+
+  .report-chart-card__header {
+    flex-direction: column;
+  }
+
+  .report-chart-card__canvas {
+    min-height: 270px;
+    height: 44vh;
+  }
+}

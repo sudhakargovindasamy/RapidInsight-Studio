@@ -1,0 +1,461 @@
+.app-layout {
+  width: 100%;
+  min-height: 100dvh;
+  color: var(--text-main);
+  background: #0f1110;
+}
+
+/* -----------------------------------------------
+   Shared top header
+   ----------------------------------------------- */
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+
+  width: 100%;
+  height: 58px;
+  padding: 0;
+
+  background: rgba(15, 17, 16, 0.96);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.app-layout--console {
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.app-layout--console .app-header {
+  position: relative;
+  flex: 0 0 58px;
+}
+
+.app-header-inner {
+  width: 100%;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+/*
+ * Match the dashboard width.
+ *
+ * Dashboard page:
+ * width: min(1120px, calc(100% - 40px))
+ */
+.app-header-inner--dashboard {
+  width: min(1120px, calc(100% - 40px));
+  padding: 0;
+}
+
+/*
+ * Developer-console pages use the entire width,
+ * like the Supabase project console.
+ */
+.app-header-inner--console {
+  max-width: none;
+}
+
+.app-header-left,
+.app-header-actions,
+.app-brand,
+.app-breadcrumbs,
+.app-user-menu {
+  display: flex;
+  align-items: center;
+}
+
+.app-header-left {
+  min-width: 0;
+  gap: 14px;
+}
+
+.app-brand {
+  flex-shrink: 0;
+  gap: 7px;
+  text-decoration: none;
+}
+
+.app-brand-mark {
+  color: #3ecf8e;
+  font-size: 20px;
+  line-height: 1;
+  transform: rotate(45deg);
+}
+
+.app-brand-name {
+  color: #f4f5f4;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.app-brand-product {
+  color: #87908b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.app-header-divider {
+  width: 1px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.app-breadcrumbs {
+  gap: 9px;
+  min-width: 0;
+
+  color: #8b9490;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.app-breadcrumbs a {
+  max-width: 240px;
+  overflow: hidden;
+  color: #c9cecb;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-breadcrumbs a:hover {
+  color: #ffffff;
+}
+
+.app-header-actions {
+  flex-shrink: 0;
+  justify-content: flex-end;
+  gap: 9px;
+}
+
+.app-header-nav-link,
+.app-header-icon-btn,
+.app-logout-btn {
+  min-height: 34px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 700;
+  transition: 150ms ease;
+}
+
+.app-header-nav-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 14px;
+
+  color: #d7dcd9;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.app-header-nav-link:hover {
+  color: #ffffff;
+  border-color: rgba(62, 207, 142, 0.4);
+}
+
+.app-header-icon-btn {
+  width: 34px;
+  padding: 0;
+
+  color: #b8c0bc;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  background: transparent;
+}
+
+.app-header-icon-btn:hover {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.app-user-menu {
+  height: 34px;
+  gap: 8px;
+  padding: 3px 10px 3px 3px;
+
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.app-user-avatar {
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+
+  display: grid;
+  place-items: center;
+
+  color: #06140d;
+  background: #3ecf8e;
+
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.app-user-name {
+  max-width: 130px;
+  overflow: hidden;
+
+  color: #d6dcd8;
+  font-size: 12px;
+  font-weight: 600;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-logout-btn {
+  padding: 0 13px;
+
+  color: #d6dcd8;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  background: transparent;
+}
+
+.app-logout-btn:hover {
+  color: #ffffff;
+  border-color: rgba(239, 68, 68, 0.45);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* -----------------------------------------------
+   Dashboard mode
+   ----------------------------------------------- */
+
+.app-layout--dashboard {
+  min-height: 100dvh;
+
+  background:
+    radial-gradient(
+      circle at 25% 0%,
+      rgba(62, 207, 142, 0.06),
+      transparent 30%
+    ),
+    #0f1110;
+}
+
+.dashboard-main {
+  width: 100%;
+  min-height: calc(100dvh - 58px);
+}
+
+/* -----------------------------------------------
+   Full-screen project console
+   ----------------------------------------------- */
+
+.console-shell {
+  height: calc(100dvh - 58px);
+  min-height: 0;
+
+  display: flex;
+  overflow: hidden;
+}
+
+.console-main {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+
+  overflow: auto;
+
+  background:
+    radial-gradient(
+      circle at 12% 0%,
+      rgba(62, 207, 142, 0.035),
+      transparent 28%
+    ),
+    #101211;
+}
+
+/*
+ * Project pages should use all available width instead of the global
+ * centered container width.
+ */
+.console-main .schema-container,
+.console-main .page-wrap {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 24px 28px 40px;
+}
+
+/*
+ * Playground should own its scrolling and dimensions.
+ */
+.console-main .schema-playground-page {
+  width: 100%;
+  min-height: 100%;
+}
+
+/* Light theme support */
+
+body[data-theme='light'] .app-layout {
+  background: #f7f8f7;
+}
+
+/* ==================================================
+   Header light theme
+   ================================================== */
+
+body[data-theme='light'] .app-header {
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom-color: rgba(15, 23, 42, 0.1);
+}
+
+body[data-theme='light'] .app-brand-name {
+  color: #111827;
+}
+
+body[data-theme='light'] .app-brand-product {
+  color: #6b746f;
+}
+
+body[data-theme='light'] .app-brand-mark {
+  color: #20b77b;
+}
+
+body[data-theme='light']
+.app-header-nav-link {
+  color: #34413a;
+  border-color: rgba(15, 23, 42, 0.13);
+  background: #ffffff;
+}
+
+body[data-theme='light']
+.app-header-nav-link:hover {
+  color: #0c704b;
+  border-color: rgba(23, 166, 115, 0.42);
+  background: #f0fbf6;
+}
+
+body[data-theme='light']
+.app-header-icon-btn {
+  color: #4c5952;
+  border-color: rgba(15, 23, 42, 0.13);
+  background: #ffffff;
+}
+
+body[data-theme='light']
+.app-header-icon-btn:hover {
+  color: #0c704b;
+  border-color: rgba(23, 166, 115, 0.42);
+  background: #f0fbf6;
+}
+
+body[data-theme='light']
+.app-user-menu {
+  color: #253129;
+  border-color: rgba(15, 23, 42, 0.13);
+  background: #ffffff;
+}
+
+body[data-theme='light']
+.app-user-name {
+  color: #26332c;
+}
+
+body[data-theme='light']
+.app-user-avatar {
+  color: #06301e;
+  background: #3ecf8e;
+}
+
+body[data-theme='light']
+.app-logout-btn {
+  color: #34413a;
+  border-color: rgba(15, 23, 42, 0.13);
+  background: #ffffff;
+}
+
+body[data-theme='light']
+.app-logout-btn:hover {
+  color: #b42318;
+  border-color: rgba(220, 38, 38, 0.35);
+  background: #fff1f1;
+}
+
+body[data-theme='light'] .console-main {
+  background: #f5f7f6;
+}
+
+@media (max-width: 900px) {
+  .app-header-inner {
+    padding: 0 12px;
+  }
+
+  .app-header-inner--dashboard {
+    width: min(100% - 28px, 1120px);
+    padding: 0;
+  }
+
+  .app-brand-product,
+  .app-user-name,
+  .app-breadcrumbs {
+    display: none;
+  }
+
+  .app-header-divider {
+    display: none;
+  }
+}
+
+@media (max-width: 620px) {
+  .app-header-nav-link {
+    display: none;
+  }
+
+  .app-logout-btn {
+    padding: 0 10px;
+  }
+}
+
+/* Standalone project browser uses a full-width console header without the project sidebar. */
+.app-layout--projects {
+  min-height: 100dvh;
+  background: #101211;
+}
+
+.projects-index-main {
+  width: 100%;
+  min-height: calc(100dvh - 58px);
+}
+
+body[data-theme='light'] .app-layout--projects {
+  background: #f7f9f8;
+}
+
+body.sidebar-is-resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+
+body.sidebar-is-resizing * {
+  cursor: col-resize !important;
+}
+
+body.sidebar-is-resizing .sidebar {
+  transition: none;
+}
+
+.console-shell {
+  display: flex;
+  overflow: hidden;
+}
+
+.console-main {
+  flex: 1;
+  min-width: 0;
+}

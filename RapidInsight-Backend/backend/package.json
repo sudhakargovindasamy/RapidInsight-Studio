@@ -1,0 +1,17 @@
+{
+  "name": "rapidinsight-studio-backend",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "concurrently -n gateway,project,schema,table,datagen,ai,export,report,sdv -c blue,magenta,green,yellow,cyan,red,black,gray,white \"npm run dev --prefix services/gateway\" \"npm run dev --prefix services/project-service\" \"npm run dev --prefix services/schema-service\" \"npm run dev --prefix services/table-service\" \"npm run dev --prefix services/datagen-service\" \"npm run dev --prefix services/ai-service\" \"npm run dev --prefix services/export-service\" \"npm run dev --prefix services/report-service\" \"npm run dev:sdv\"",
+    "start": "concurrently -n gateway,project,schema,table,datagen,ai,sdv -c blue,magenta,green,yellow,cyan,red,white \"npm start --prefix services/gateway\" \"npm start --prefix services/project-service\" \"npm start --prefix services/schema-service\" \"npm start --prefix services/table-service\" \"npm start --prefix services/datagen-service\" \"npm start --prefix services/ai-service\" \"npm run start:sdv\"",
+    "dev:sdv": "node scripts/run-sdv.js --reload",
+    "start:sdv": "node scripts/run-sdv.js",
+    "setup:sdv": "node scripts/setup-sdv.js",
+    "check:sdv": "curl -s http://localhost:3008/health",
+    "postinstall": "npm install --prefix services/gateway && npm install --prefix services/project-service && npm install --prefix services/schema-service && npm install --prefix services/table-service && npm install --prefix services/datagen-service && npm install --prefix services/ai-service && npm install --prefix services/report-service && npm install --prefix services/export-service && node scripts/setup-sdv.js"
+  },
+  "dependencies": {
+    "concurrently": "^10.0.3"
+  }
+}

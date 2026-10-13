@@ -1,0 +1,18 @@
+# Normalize all text files to LF in the repo, regardless of the committer's OS
+# or local core.autocrlf setting. Prevents line-ending diffs/churn between
+# Windows devs and Mac/Linux devs (and matches the Linux runtime on Azure).
+* text=auto eol=lf
+
+# Windows-only scripts should keep CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary files - never touch line endings
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
