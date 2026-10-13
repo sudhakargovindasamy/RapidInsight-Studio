@@ -125,6 +125,7 @@ function UploadSchemaPanel({ projectId, onUploaded }) {
       return { connectionString: connectionString.trim() };
     }
     return {
+      type: 'postgres',
       host: host.trim(),
       port: Number(port) || 5432,
       database: database.trim(),

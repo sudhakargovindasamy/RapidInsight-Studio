@@ -1,4 +1,3 @@
-const { Client } = require('pg');
 const crypto = require('crypto');
 const Papa = require('papaparse');
 const env = require('../config/env');
@@ -8,88 +7,29 @@ const { uploadSchemaDefinition, uploadRawDataFile } = require('./schemaStorageSe
 const { registerCatalogMetadata } = require('./catalogIngestionService');
 const pool = require('../config/db');
 const { loadOrReplacePhysicalTable } = require('./physicalTableLoaderService');
+const { resolveConnector, securityUtils } = require('../connectors');
 
+/**
+ * Backward compatibility helper for legacy code requiring parsed client config.
+ */
 function parseClientConfig(connectionConfig) {
-  if (connectionConfig.connectionString) {
-    const isLocalhost = connectionConfig.connectionString.includes('localhost') || connectionConfig.connectionString.includes('127.0.0.1');
-    return {
-      connectionString: connectionConfig.connectionString.trim(),
-      connectionTimeoutMillis: 8000,
-      ssl: isLocalhost ? false : { rejectUnauthorized: false }
-    };
-  }
-
-  const isLocalhost = connectionConfig.host === 'localhost' || connectionConfig.host === '127.0.0.1';
-  return {
-    host: connectionConfig.host,
-    port: Number(connectionConfig.port) || 5432,
-    database: connectionConfig.database,
-    user: connectionConfig.user,
-    password: connectionConfig.password,
-    connectionTimeoutMillis: 8000,
-    ssl: isLocalhost ? false : { rejectUnauthorized: false }
-  };
+  const { connector } = resolveConnector(connectionConfig);
+  return connector.validateConfig(connectionConfig);
 }
 
-function mapPgTypeToSchemaType(pgType) {
-  const type = String(pgType || '').toLowerCase();
-  if (['integer', 'bigint', 'smallint', 'decimal', 'numeric', 'real', 'double precision', 'int', 'int4', 'int8', 'float4', 'float8'].some(t => type.includes(t))) {
-    return 'number';
-  }
-  if (['boolean', 'bool'].some(t => type.includes(t))) {
-    return 'boolean';
-  }
-  if (['date', 'timestamp', 'time'].some(t => type.includes(t))) {
-    return 'date';
-  }
-  return 'string';
-}
-
+/**
+ * Tests database connectivity and introspects available user tables using the resolved connector.
+ * @param {Object} connectionConfig
+ * @returns {Promise<{ success: boolean, tables: Array }>}
+ */
 async function testAndDiscoverTables(connectionConfig) {
-  const clientConfig = parseClientConfig(connectionConfig);
-  const client = new Client(clientConfig);
-
-  try {
-    await client.connect();
-
-    const query = `
-      SELECT 
-        t.table_schema, 
-        t.table_name,
-        (
-          SELECT count(*)::int 
-          FROM information_schema.columns c 
-          WHERE c.table_schema = t.table_schema AND c.table_name = t.table_name
-        ) as column_count
-      FROM information_schema.tables t
-      WHERE t.table_schema NOT IN ('pg_catalog', 'information_schema', 'pg_toast', 'graphql', 'vault', 'auth', 'storage', 'realtime')
-        AND t.table_type = 'BASE TABLE'
-      ORDER BY t.table_schema, t.table_name;
-    `;
-
-    const result = await client.query(query);
-
-    return {
-      success: true,
-      tables: result.rows.map(r => ({
-        schema: r.table_schema,
-        name: r.table_name,
-        fullName: `${r.table_schema}.${r.table_name}`,
-        columnCount: r.column_count
-      }))
-    };
-  } catch (err) {
-    logger.error({ err }, 'Database connection test failed');
-    throw new Error(`Database connection failed: ${err.message}`);
-  } finally {
-    try {
-      await client.end();
-    } catch {
-      // ignore close errors
-    }
-  }
+  const { connector } = resolveConnector(connectionConfig);
+  return await connector.testConnection(connectionConfig);
 }
 
+/**
+ * Introspects selected tables and imports them into project schemas and physical tables.
+ */
 async function importTablesAsSchemas({
   project,
   userId,
@@ -98,65 +38,33 @@ async function importTablesAsSchemas({
   selectedTables, // array of { schema, name }
   supabase
 }) {
-  const clientConfig = parseClientConfig(connectionConfig);
-  const client = new Client(clientConfig);
+  const { connector, resolvedType } = resolveConnector(connectionConfig);
+  const client = await connector.createClient(connectionConfig);
   const bucket = env.SCHEMA_STORAGE_BUCKET;
 
   const importedSchemas = [];
 
   try {
-    await client.connect();
-
     for (const tableItem of selectedTables) {
       const tableSchema = (typeof tableItem === 'object' && tableItem !== null ? tableItem.schema : 'public') || 'public';
       const tableName = typeof tableItem === 'object' && tableItem !== null ? (tableItem.name || tableItem.tableName) : String(tableItem);
       if (!tableName) continue;
 
-      // 1. Introspect columns & primary key
-      const colQuery = `
-        SELECT 
-          c.column_name, 
-          c.data_type, 
-          c.is_nullable,
-          c.column_default,
-          CASE WHEN pk.column_name IS NOT NULL THEN true ELSE false END as is_primary_key
-        FROM information_schema.columns c
-        LEFT JOIN (
-          SELECT kcu.column_name, kcu.table_schema, kcu.table_name
-          FROM information_schema.table_constraints tc
-          JOIN information_schema.key_column_usage kcu
-            ON tc.constraint_name = kcu.constraint_name AND tc.table_schema = kcu.table_schema
-          WHERE tc.constraint_type = 'PRIMARY KEY'
-        ) pk ON pk.table_schema = c.table_schema 
-            AND pk.table_name = c.table_name 
-            AND pk.column_name = c.column_name
-        WHERE c.table_schema = $1 AND c.table_name = $2
-        ORDER BY c.ordinal_position;
-      `;
-
-      const colsResult = await client.query(colQuery, [tableSchema, tableName]);
-      if (!colsResult.rows.length) continue;
-
-      const fields = colsResult.rows.map(col => ({
-        name: col.column_name,
-        type: mapPgTypeToSchemaType(col.data_type),
-        primaryKey: Boolean(col.is_primary_key),
-        notNull: col.is_nullable === 'NO',
-        unique: Boolean(col.is_primary_key)
-      }));
+      // 1. Introspect columns & primary key via connector
+      const fields = await connector.introspectTableColumns(client, tableSchema, tableName);
+      if (!fields || !fields.length) continue;
 
       const schemaDefinition = { fields };
 
-      // 2. Sample data rows
+      // 2. Sample data rows via connector
       let sampleRows = [];
       try {
-        const safeSchema = String(tableSchema).replace(/"/g, '""');
-        const safeTable = String(tableName).replace(/"/g, '""');
-        const rowsQuery = `SELECT * FROM "${safeSchema}"."${safeTable}" LIMIT 100;`;
-        const rowsResult = await client.query(rowsQuery);
-        sampleRows = rowsResult.rows || [];
+        sampleRows = await connector.fetchSampleRows(client, tableSchema, tableName, 100);
       } catch (err) {
-        logger.warn({ err, table: tableName }, 'Could not read sample rows from source table');
+        logger.warn(
+          { err: securityUtils.sanitizeErrorMessage(err.message), table: tableName },
+          'Could not read sample rows from source table'
+        );
       }
 
       // 3. Prepare schema metadata
@@ -188,6 +96,7 @@ async function importTablesAsSchemas({
       }
 
       // Load or replace physical table and synchronize metadata
+      const sourceTypeName = resolvedType === 'postgres' ? 'EXTERNAL_POSTGRESQL' : `EXTERNAL_${resolvedType.toUpperCase()}`;
       const tableResult = await loadOrReplacePhysicalTable({
         pool,
         supabase,
@@ -203,8 +112,8 @@ async function importTablesAsSchemas({
         bucket,
         displayName,
         source: {
-          sourceName: connectionConfig.database ? `DB: ${connectionConfig.database}` : 'External PostgreSQL',
-          sourceType: 'EXTERNAL_POSTGRESQL',
+          sourceName: connectionConfig.database ? `DB: ${connectionConfig.database}` : `External ${resolvedType.toUpperCase()}`,
+          sourceType: sourceTypeName,
           host: connectionConfig.host || 'remote',
           port: connectionConfig.port || 5432,
           databaseName: connectionConfig.database || null
@@ -227,18 +136,18 @@ async function importTablesAsSchemas({
       schemas: importedSchemas
     };
   } catch (err) {
-    logger.error({ err }, 'Failed importing tables from connected database');
+    logger.error(
+      { err: securityUtils.sanitizeErrorMessage(err.message) },
+      'Failed importing tables from connected database'
+    );
     throw err;
   } finally {
-    try {
-      await client.end();
-    } catch {
-      // ignore close errors
-    }
+    await connector.closeClient(client);
   }
 }
 
 module.exports = {
+  parseClientConfig,
   testAndDiscoverTables,
   importTablesAsSchemas
 };
