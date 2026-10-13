@@ -100,15 +100,16 @@ async function validateWithRepair({
   for (let attempt = 0; attempt <= MAX_SAFETY_REPAIR_ATTEMPTS; attempt += 1) {
     try {
       const finalized = validateSqlPlan(sqlUsed, context);
-      return { finalized, sqlUsed, repairAttempts: attempt };
+      const { rows } = await withStatementTimeout(finalized);
+      return { finalized, rows, sqlUsed, repairAttempts: attempt };
     } catch (error) {
       error.lastAttemptedSql = sqlUsed;
 
-      if (error.statusCode !== 422 || attempt === MAX_SAFETY_REPAIR_ATTEMPTS) {
+      if (attempt === MAX_SAFETY_REPAIR_ATTEMPTS) {
         throw error;
       }
 
-      console.warn('SQL KPI query rejected by validator, asking LLM to repair', {
+      console.warn('SQL KPI query rejected by validator or database execution, asking LLM to repair', {
         request: item.request,
         attempt: attempt + 1,
         maxAttempts: MAX_SAFETY_REPAIR_ATTEMPTS,
@@ -424,7 +425,7 @@ async function generateSqlDashboard({
       try {
         assertFormat(item, path);
 
-        const { finalized, repairAttempts } = await validateWithRepair({
+        const { finalized, rows, repairAttempts } = await validateWithRepair({
           item,
           context,
           physicalSchemas,
@@ -434,14 +435,13 @@ async function generateSqlDashboard({
           accessToken
         });
 
-        console.info('Executing SQL KPI query', {
+        console.info('SQL KPI query executed successfully', {
           projectId,
           request: item.request,
           repairAttempts,
           sql: finalized.text.trim()
         });
 
-        const { rows } = await withStatementTimeout(finalized);
         const shaped = shapeDashboardResult(item, rows, index);
 
         if (!shaped) {

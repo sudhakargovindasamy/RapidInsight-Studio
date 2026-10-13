@@ -175,6 +175,7 @@ async function loadOrReplacePhysicalTable({
   originalFileName,
   fileType = 'csv',
   storagePath = null,
+  dataStoragePath = null,
   bucket = null,
   displayName = null,
   source = null,
@@ -278,9 +279,10 @@ async function loadOrReplacePhysicalTable({
              physical_table_name = $5,
              data_source = $6,
              seed_status = 'not_required',
+             data_storage_path = coalesce($8, data_storage_path),
              updated_at = now()
          WHERE id = $7`,
-        [fields.length, fingerprint, rows.length, physicalSchemaName, physicalTableName, rows.length > 0 ? 'uploaded' : 'faker', schemaId]
+        [fields.length, fingerprint, rows.length, physicalSchemaName, physicalTableName, rows.length > 0 ? 'uploaded' : 'faker', schemaId, dataStoragePath]
       );
     } else {
       const finalBucket = bucket || process.env.SCHEMA_STORAGE_BUCKET || 'schemas';
@@ -290,9 +292,9 @@ async function loadOrReplacePhysicalTable({
           id, user_id, project_id, original_file_name, display_name, storage_bucket, storage_path,
           file_type, field_count, status, table_status, sanitized_table_name, physical_schema_name,
           physical_table_name, data_source, seed_fingerprint, uploaded_row_count,
-          seed_status, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'uploaded', 'BUILT', $10, $11, $12, $13, $14, $15, 'not_required', now(), now())`,
-        [schemaId, userId, project.id, originalFileName, finalDisplayName, finalBucket, finalStoragePath, fileType, fields.length, sanitizedTableName, physicalSchemaName, physicalTableName, rows.length > 0 ? 'uploaded' : 'faker', fingerprint, rows.length]
+          seed_status, data_storage_path, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'uploaded', 'BUILT', $10, $11, $12, $13, $14, $15, 'not_required', $16, now(), now())`,
+        [schemaId, userId, project.id, originalFileName, finalDisplayName, finalBucket, finalStoragePath, fileType, fields.length, sanitizedTableName, physicalSchemaName, physicalTableName, rows.length > 0 ? 'uploaded' : 'faker', fingerprint, rows.length, dataStoragePath]
       );
     }
 

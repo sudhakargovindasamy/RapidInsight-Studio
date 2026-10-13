@@ -1,11 +1,11 @@
 .registry-asset-page {
-  padding-bottom: 40px;
+  padding-bottom: 60px;
 }
 
 .registry-asset-upload-wrap {
   width: 100%;
-  max-width: 820px;
-  margin: 0 auto;
+  max-width: 900px;
+  margin: 0 auto 36px auto;
 }
 
 .registry-asset-upload-wrap .upload-panel,
@@ -13,3 +13,174 @@
   width: 100%;
 }
 
+/* Registered Assets List Section */
+.registered-assets-section {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  background: var(--card-solid);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: var(--shadow-main);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.registered-assets-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.registered-assets-header h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.registered-assets-header p {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 2px 0 0 0;
+}
+
+.registered-assets-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.registered-assets-search {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--input-bg);
+  color: var(--text-main);
+  font-size: 13px;
+  min-width: 200px;
+  outline: none;
+}
+
+.registered-assets-search:focus {
+  border-color: var(--schema-primary);
+}
+
+/* Table */
+.registered-assets-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--input-bg);
+}
+
+.registered-assets-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+
+.registered-assets-table th {
+  padding: 12px 14px;
+  background: var(--muted-bg);
+  color: var(--text-muted);
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.registered-assets-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-main);
+  vertical-align: middle;
+}
+
+.registered-assets-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.registered-assets-table tbody tr:hover {
+  background: var(--elevated-bg);
+}
+
+.asset-name-cell {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.source-file-cell {
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.col-count-badge {
+  display: inline-flex;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--schema-primary-subtle);
+  color: var(--schema-primary);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.file-size-cell,
+.date-cell {
+  color: var(--text-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.view-schema-btn {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+/* Columns Spec Table inside Modal */
+.columns-spec-table-wrap {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.columns-spec-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: left;
+}
+
+.columns-spec-table th {
+  padding: 10px 12px;
+  background: var(--muted-bg);
+  color: var(--text-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.columns-spec-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-main);
+}
+
+.columns-spec-table tr:last-child td {
+  border-bottom: none;
+}

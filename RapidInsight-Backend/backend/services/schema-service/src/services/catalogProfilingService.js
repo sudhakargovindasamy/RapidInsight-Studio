@@ -190,20 +190,28 @@ async function listCatalogAssets({ projectId, sourceId }) {
       ca.fq_name,
       ca.classification,
       ca.status,
+      ca.file_size,
+      ca.sheet_name,
+      ca.column_count,
       ca.created_at,
       ca.updated_at,
+      ds.source_name,
+      ds.source_type,
       CASE 
         WHEN gt.status = 'POPULATED' THEN true
         ELSE false
       END as is_populated,
       COALESCE(gt.row_count, 0) as row_count
     FROM public.catalog_asset ca
+    LEFT JOIN public.data_source ds ON ds.source_id = ca.source_id
     LEFT JOIN public.generated_tables gt 
       ON (gt.id = ca.generated_table_id OR (ca.generated_table_id IS NULL AND gt.schema_id = ca.schema_id))
-    WHERE ca.project_id = $1 AND ca.source_id = $2 AND ca.status = 'ACTIVE'
-    ORDER BY ca.asset_name ASC;
+    WHERE ca.project_id = $1 
+      AND ($2::uuid IS NULL OR ca.source_id = $2::uuid) 
+      AND ca.status = 'ACTIVE'
+    ORDER BY ca.created_at DESC, ca.asset_name ASC;
   `;
-  const result = await pool.query(query, [projectId, sourceId]);
+  const result = await pool.query(query, [projectId, sourceId || null]);
   return result.rows;
 }
 

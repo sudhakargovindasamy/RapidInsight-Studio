@@ -122,6 +122,8 @@ async function uploadSchema(req, res, next) {
         path: dataStoragePath,
         buffer: req.file.buffer,
         contentType: req.file.mimetype || 'text/csv'
+      }).then(() => {
+        pool.query('UPDATE public.schemas SET data_storage_path = $1 WHERE id = $2', [dataStoragePath, tableResult.schemaId]).catch(() => {});
       }).catch(err => logger.warn({ err: err.message }, 'Backup raw data storage skipped'));
     }
 

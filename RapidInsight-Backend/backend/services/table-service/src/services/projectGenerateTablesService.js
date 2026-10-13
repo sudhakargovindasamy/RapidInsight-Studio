@@ -236,7 +236,7 @@ function partitionBundlesByDataSource(schemaBundles) {
   const generated = [];
 
   schemaBundles.forEach((bundle) => {
-    if (bundle.schema.data_source === 'uploaded' && bundle.schema.data_storage_path) {
+    if (bundle.schema.data_source === 'uploaded') {
       uploaded.push(bundle);
     } else {
       generated.push(bundle);
@@ -328,33 +328,66 @@ async function insertRelationalRows({
     const generatedTable = generatedTablesBySchemaId.get(bundle.schema.id);
     if (!generatedTable) continue;
 
-    if (clearBeforeInsert) {
-      await clearGeneratedTableRows({ generatedTable });
+    if (bundle.schema.data_storage_path) {
+      if (clearBeforeInsert) {
+        await clearGeneratedTableRows({ generatedTable });
+      }
+
+      const rows = await loadUploadedRows({ supabase, schema: bundle.schema });
+
+      const inserted = await insertRows({
+        generatedTable,
+        schemaDefinition: bundle.schemaDefinition,
+        rows,
+        userId
+      });
+
+      const updatedTable = await updateGeneratedTableRowCount({
+        supabase,
+        generatedTableId: generatedTable.id,
+        rowCount: inserted,
+        status: inserted > 0 ? 'POPULATED' : 'CREATED'
+      });
+
+      insertResults.push({
+        schema_id: bundle.schema.id,
+        table_name: tableBlueprint.table_name,
+        generated_table_id: generatedTable.id,
+        rows_inserted: inserted,
+        generatedTable: updatedTable
+      });
+    } else {
+      // Direct database import or pre-populated physical table without storage file.
+      // Data already exists in PostgreSQL, so preserve the existing physical rows.
+      let count = Number(generatedTable.row_count) || 0;
+      try {
+        const schemaName = generatedTable.physical_schema_name || 'public';
+        const tableName = generatedTable.physical_table_name;
+        if (tableName) {
+          const { rows: countRows } = await pool.query(
+            `select count(*)::int as count from ${quoteQualifiedName(schemaName, tableName)}`
+          );
+          count = countRows[0]?.count ?? count;
+        }
+      } catch (err) {
+        console.warn('Could not query physical table row count:', err.message);
+      }
+
+      const updatedTable = await updateGeneratedTableRowCount({
+        supabase,
+        generatedTableId: generatedTable.id,
+        rowCount: count,
+        status: count > 0 ? 'POPULATED' : 'CREATED'
+      });
+
+      insertResults.push({
+        schema_id: bundle.schema.id,
+        table_name: tableBlueprint.table_name,
+        generated_table_id: generatedTable.id,
+        rows_inserted: count,
+        generatedTable: updatedTable
+      });
     }
-
-    const rows = await loadUploadedRows({ supabase, schema: bundle.schema });
-
-    const inserted = await insertRows({
-      generatedTable,
-      schemaDefinition: bundle.schemaDefinition,
-      rows,
-      userId
-    });
-
-    const updatedTable = await updateGeneratedTableRowCount({
-      supabase,
-      generatedTableId: generatedTable.id,
-      rowCount: inserted,
-      status: inserted > 0 ? 'POPULATED' : 'CREATED'
-    });
-
-    insertResults.push({
-      schema_id: bundle.schema.id,
-      table_name: tableBlueprint.table_name,
-      generated_table_id: generatedTable.id,
-      rows_inserted: inserted,
-      generatedTable: updatedTable
-    });
   }
 
   // 2. Process Datagen Data

@@ -91,6 +91,11 @@ async function registerCatalogMetadata({
     const fqName = `${schemaName}.${assetName}`;
     const assetType = asset.assetType || 'TABLE';
 
+    const fileSize = asset.fileSize != null ? Number(asset.fileSize) : null;
+    const sheetName = asset.sheetName || null;
+    const columnCount = typeof asset.columnCount === 'number' ? asset.columnCount : columns.length;
+    const mimeType = asset.mimeType || null;
+
     const assetQuery = `
       INSERT INTO public.catalog_asset (
         source_id,
@@ -103,12 +108,20 @@ async function registerCatalogMetadata({
         fq_name,
         classification,
         status,
-        created_by
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'INTERNAL', 'ACTIVE', $9)
+        created_by,
+        file_size,
+        sheet_name,
+        column_count,
+        mime_type
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'INTERNAL', 'ACTIVE', $9, $10, $11, $12, $13)
       ON CONFLICT (source_id, fq_name) DO UPDATE SET
         schema_id = COALESCE(EXCLUDED.schema_id, public.catalog_asset.schema_id),
         generated_table_id = COALESCE(EXCLUDED.generated_table_id, public.catalog_asset.generated_table_id),
         asset_type = EXCLUDED.asset_type,
+        file_size = COALESCE(EXCLUDED.file_size, public.catalog_asset.file_size),
+        sheet_name = COALESCE(EXCLUDED.sheet_name, public.catalog_asset.sheet_name),
+        column_count = COALESCE(EXCLUDED.column_count, public.catalog_asset.column_count),
+        mime_type = COALESCE(EXCLUDED.mime_type, public.catalog_asset.mime_type),
         status = 'ACTIVE',
         updated_at = now()
       RETURNING asset_id;
@@ -123,7 +136,11 @@ async function registerCatalogMetadata({
       assetName,
       assetType,
       fqName,
-      userId
+      userId,
+      fileSize,
+      sheetName,
+      columnCount,
+      mimeType
     ]);
 
     const assetId = assetRes.rows[0].asset_id;

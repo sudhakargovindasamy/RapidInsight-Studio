@@ -1,8 +1,9 @@
 import { useState } from 'react';
 
-import { uploadSchema, testDatabaseConnection, importTablesFromDatabase } from '../api/schemaApi.js';
+import { uploadSchema, testDatabaseConnection, importTablesFromDatabase, registerAssetMetadata } from '../api/schemaApi.js';
 import { useProjectRefresh } from '../context/ProjectRefreshContext.jsx';
 import { validateSchemaFile } from '../utils/fileValidation.js';
+import { extractAssetMetadata } from '../utils/fileMetadataExtractor.js';
 import { detectDataFile, FILE_KIND } from '../utils/dataFileDetection.js';
 
 const USE_MY_DATA = 'uploaded';
@@ -36,14 +37,14 @@ function UploadSchemaPanel({ projectId, onUploaded }) {
   const [connectError, setConnectError] = useState('');
   const [connectSuccess, setConnectSuccess] = useState('');
 
-  const allHaveRows = detections.length > 0 && detections.every(d => d.kind === FILE_KIND.DATA);
+  const [extractedMetadata, setExtractedMetadata] = useState([]);
 
   async function handleFileChange(event) {
     const files = Array.from(event.target.files || []);
 
     setError('');
     setSuccess('');
-    setDetections([]);
+    setExtractedMetadata([]);
 
     if (files.length === 0) {
       setSelectedFiles([]);
@@ -60,25 +61,28 @@ function UploadSchemaPanel({ projectId, onUploaded }) {
       }
     }
 
-    setSelectedFiles(files);
-
-    const results = await Promise.all(files.map(f => detectDataFile(f)));
-    setDetections(results);
-
-    const hasData = results.every(result => result.kind === FILE_KIND.DATA);
-    setDataSource(hasData ? USE_MY_DATA : USE_FAKER);
+    try {
+      // Extract only structure, headers, column types and metadata (no data rows)
+      const metaList = await Promise.all(files.map((f) => extractAssetMetadata(f)));
+      setSelectedFiles(files);
+      setExtractedMetadata(metaList);
+    } catch (err) {
+      setError(err.message || 'Failed to inspect file structure.');
+      setSelectedFiles([]);
+      setFileInputKey((value) => value + 1);
+    }
   }
 
   async function handleUpload(event) {
     event.preventDefault();
 
     if (!projectId) {
-      setError('Project is required before uploading schema.');
+      setError('Project is required before registering asset metadata.');
       return;
     }
 
     if (selectedFiles.length === 0) {
-      setError('Please select a schema file.');
+      setError('Please select an asset file.');
       return;
     }
 
@@ -87,17 +91,20 @@ function UploadSchemaPanel({ projectId, onUploaded }) {
       setError('');
       setSuccess('');
 
-      for (const file of selectedFiles) {
-        await uploadSchema({
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        const metadata = extractedMetadata[i] || (await extractAssetMetadata(file));
+
+        // Transmit ONLY the metadata payload across HTTP (zero business records)
+        await registerAssetMetadata({
           projectId,
-          file,
-          dataSource
+          ...metadata
         });
       }
 
-      setSuccess(`Successfully uploaded ${selectedFiles.length} schema(s)!`);
+      setSuccess(`Successfully registered ${selectedFiles.length} asset(s) metadata into Asset Registry! No business records were stored.`);
       setSelectedFiles([]);
-      setDetections([]);
+      setExtractedMetadata([]);
       setFileInputKey((value) => value + 1);
 
       notifyProjectChanged(projectId);
@@ -106,7 +113,7 @@ function UploadSchemaPanel({ projectId, onUploaded }) {
         onUploaded();
       }
     } catch (err) {
-      setError(err.message || 'Failed to upload schemas.');
+      setError(err.message || 'Failed to register asset metadata.');
     } finally {
       setUploading(false);
     }
@@ -220,9 +227,9 @@ function UploadSchemaPanel({ projectId, onUploaded }) {
   return (
     <section className="workspace-panel">
       <div className="panel-header">
-        <h2 className="panel-title">Upload Schema</h2>
+        <h2 className="panel-title">Register Asset</h2>
         <p className="panel-description">
-          Upload JSON, YAML, YML, or CSV schema files to this project. Maximum size: 5 MB per file.
+          Upload CSV, XLSX, XLS, JSON, or YAML files. Extracts and registers only asset metadata and column structure. No business data rows are stored.
         </p>
       </div>
 
@@ -230,10 +237,10 @@ function UploadSchemaPanel({ projectId, onUploaded }) {
         <div className="upload-zone">
           <div className="upload-icon">↑</div>
 
-          <strong>Choose your schema files</strong>
+          <strong>Choose your files</strong>
 
           <p className="panel-description" style={{ marginTop: 6 }}>
-            Supported formats: JSON, YAML, YML and CSV
+            Supported formats: CSV, XLSX, XLS, JSON, YAML, and YML (Metadata only)
           </p>
 
           <input
@@ -241,7 +248,7 @@ function UploadSchemaPanel({ projectId, onUploaded }) {
             className="file-input"
             type="file"
             multiple
-            accept=".json,.yaml,.yml,.csv"
+            accept=".json,.yaml,.yml,.csv,.xlsx,.xls"
             onChange={handleFileChange}
             disabled={uploading}
           />
@@ -249,71 +256,31 @@ function UploadSchemaPanel({ projectId, onUploaded }) {
           {selectedFiles.length > 0 && (
             <div className="selected-file" style={{ marginTop: 16 }}>
               Selected: <strong>{selectedFiles.length} file(s)</strong>
-              {selectedFiles.length <= 5 && (
-                <ul style={{ margin: '8px 0', paddingLeft: 20, textAlign: 'left', fontSize: 13, color: 'var(--text-muted)' }}>
-                  {selectedFiles.map(f => (
-                    <li key={f.name}>{f.name}</li>
-                  ))}
-                </ul>
-              )}
-              {selectedFiles.length > 5 && (
-                <div style={{ marginTop: 8, fontSize: 13, color: 'var(--text-muted)' }}>
-                  {selectedFiles.slice(0, 5).map(f => f.name).join(', ')} ... and {selectedFiles.length - 5} more
-                </div>
-              )}
+              <ul style={{ margin: '8px 0', paddingLeft: 20, textAlign: 'left', fontSize: 13, color: 'var(--text-muted)' }}>
+                {selectedFiles.map((f, idx) => {
+                  const meta = extractedMetadata[idx];
+                  return (
+                    <li key={f.name} style={{ marginBottom: 6 }}>
+                      <strong>{f.name}</strong> ({(f.size / 1024).toFixed(1)} KB)
+                      {meta && (
+                        <span style={{ display: 'block', fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
+                          ✓ {meta.columnCount} column(s) detected: {meta.columns.slice(0, 5).map(c => c.name).join(', ')}{meta.columns.length > 5 ? '…' : ''} {meta.sheetName ? `(Sheet: ${meta.sheetName})` : ''}
+                        </span>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
           )}
         </div>
-
-        {selectedFiles.length > 0 && (
-          <fieldset className="data-source-choice">
-            <legend>What should we put in the table?</legend>
-
-            <label className={`data-source-option${!allHaveRows ? ' data-source-option--disabled' : ''}`}>
-              <input
-                type="radio"
-                name="data-source"
-                value={USE_MY_DATA}
-                checked={dataSource === USE_MY_DATA}
-                disabled={!allHaveRows}
-                onChange={() => setDataSource(USE_MY_DATA)}
-              />
-              <span>
-                <strong>Use my data</strong>
-                <small>
-                  {allHaveRows
-                    ? 'Insert the rows from these files. Columns and types are read from them.'
-                    : 'Unavailable — not all selected files contain data rows.'}
-                </small>
-              </span>
-            </label>
-
-            <label className="data-source-option">
-              <input
-                type="radio"
-                name="data-source"
-                value={USE_FAKER}
-                checked={dataSource === USE_FAKER}
-                onChange={() => setDataSource(USE_FAKER)}
-              />
-              <span>
-                <strong>Generate mock data</strong>
-                <small>
-                  {allHaveRows
-                    ? 'Ignore the rows in these files and generate realistic fake data instead.'
-                    : 'Generate realistic fake data matching these columns.'}
-                </small>
-              </span>
-            </label>
-          </fieldset>
-        )}
 
         <button
           type="submit"
           disabled={uploading}
           className="upload-btn"
         >
-          {uploading ? 'Uploading...' : 'Upload Schemas'}
+          {uploading ? 'Registering Metadata...' : 'Upload Assets'}
         </button>
       </form>
 

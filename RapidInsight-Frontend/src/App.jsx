@@ -19,6 +19,7 @@ import TableViewerPage from './pages/TableViewerPage.jsx';
 import SchemaPlaygroundPage from './pages/SchemaPlaygroundPage.jsx';
 import DataCatalogPage from './pages/DataCatalogPage.jsx';
 import RegistryAssetPage from './pages/RegistryAssetPage.jsx';
+import DataIngestionPage from './pages/DataIngestionPage.jsx';
 
 function App() {
   return (
@@ -39,6 +40,10 @@ function App() {
           <Route
             path="/projects/:projectId/registry-asset"
             element={<RegistryAssetPage />}
+          />
+          <Route
+            path="/projects/:projectId/data-ingestion"
+            element={<DataIngestionPage />}
           />
           <Route
             path="/projects/:projectId/playground"

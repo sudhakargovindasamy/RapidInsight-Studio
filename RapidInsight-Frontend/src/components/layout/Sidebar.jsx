@@ -1,4 +1,5 @@
-import { NavLink } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import './Sidebar.css';
 
 function NavigationIcon({ type }) {
@@ -57,6 +58,15 @@ function NavigationIcon({ type }) {
         <path d="M7 16h6" />
       </svg>
     ),
+    ingestion: (
+      <svg {...commonProps}>
+        <ellipse cx="12" cy="5" rx="9" ry="3" />
+        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+        <path d="M12 11v6" />
+        <path d="m15 14-3-3-3 3" />
+      </svg>
+    ),
     settings: (
       <svg {...commonProps}>
         <circle cx="12" cy="12" r="3" />
@@ -102,6 +112,73 @@ function ProjectNavLink({ to, end = false, icon, children }) {
   );
 }
 
+function ExpandableNavItem({ to, icon, label, items = [] }) {
+  const location = useLocation();
+  const isBaseActive = location.pathname.startsWith(to);
+  const [isOpen, setIsOpen] = useState(isBaseActive);
+
+  useEffect(() => {
+    if (isBaseActive) {
+      setIsOpen(true);
+    }
+  }, [isBaseActive]);
+
+  const handleToggle = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsOpen((prev) => !prev);
+  };
+
+  return (
+    <div className="sidebar-expandable-wrap">
+      <div className="sidebar-expandable-header">
+        <NavLink
+          to={to}
+          className={({ isActive }) => [
+            'sidebar-nav-item',
+            'sidebar-nav-item--expandable',
+            (isActive || isBaseActive) ? 'sidebar-nav-item--active' : ''
+          ].filter(Boolean).join(' ')}
+        >
+          <span className="sidebar-nav-icon">
+            <NavigationIcon type={icon} />
+          </span>
+          <span className="sidebar-nav-text">{label}</span>
+        </NavLink>
+        <button
+          type="button"
+          className={`sidebar-expand-toggle ${isOpen ? 'sidebar-expand-toggle--open' : ''}`}
+          onClick={handleToggle}
+          aria-label={isOpen ? `Collapse ${label}` : `Expand ${label}`}
+          title={isOpen ? `Collapse ${label}` : `Expand ${label}`}
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+      </div>
+
+      {isOpen && items.length > 0 && (
+        <div className="sidebar-subnav">
+          {items.map((item) => {
+            const isSubActive = location.pathname === to && location.search.includes(item.query);
+            return (
+              <NavLink
+                key={item.label}
+                to={item.to}
+                className={`sidebar-subnav-item ${isSubActive ? 'sidebar-subnav-item--active' : ''}`}
+              >
+                <span className="sidebar-subnav-bullet" />
+                <span>{item.label}</span>
+              </NavLink>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Sidebar({
   projectId,
   isProjectRoute,
@@ -136,6 +213,17 @@ export default function Sidebar({
         <ProjectNavLink to={`${projectBase}/registry-asset`} icon="registry">
           Registry Assest
         </ProjectNavLink>
+
+        <ExpandableNavItem
+          to={`${projectBase}/data-ingestion`}
+          icon="ingestion"
+          label="Data Ingestion"
+          items={[
+            { label: 'Profile Source', to: `${projectBase}/data-ingestion?step=profile-source`, query: 'step=profile-source' },
+            { label: 'Asset List', to: `${projectBase}/data-ingestion?step=asset-list`, query: 'step=asset-list' },
+            { label: 'Load Data', to: `${projectBase}/data-ingestion?step=load-data`, query: 'step=load-data' }
+          ]}
+        />
 
         <ProjectNavLink to={`${projectBase}/playground`} icon="playground">
           Schema Playground

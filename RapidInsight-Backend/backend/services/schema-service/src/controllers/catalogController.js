@@ -127,11 +127,37 @@ async function getProfilingHistory(req, res, next) {
   }
 }
 
+const { registerAssetMetadata } = require('../services/assetRegistrationService');
+
+async function registerAsset(req, res, next) {
+  try {
+    const supabase = getSupabase(req);
+    const projectId = req.body.projectId || req.body.project_id;
+    const project = await getProjectForEmployee({ supabase, projectId, userId: req.user?.id });
+
+    const result = await registerAssetMetadata({
+      project,
+      userId: req.user.id,
+      payload: req.body
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: `Asset "${result.assetName}" registered successfully with ${result.columnCount} columns.`,
+      data: result,
+      requestId: req.id
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
 module.exports = {
   getSources,
   getAssets,
   getColumns,
   profileStat,
-  getProfilingHistory
+  getProfilingHistory,
+  registerAsset
 };
 

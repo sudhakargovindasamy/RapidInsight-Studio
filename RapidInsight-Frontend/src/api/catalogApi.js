@@ -11,9 +11,10 @@ export async function getCatalogSources(projectId) {
  * Fetch catalog assets for a given source within a project
  */
 export async function getCatalogAssets(projectId, sourceId) {
-  return apiRequest(
-    `/schema/catalog/assets?projectId=${encodeURIComponent(projectId)}&sourceId=${encodeURIComponent(sourceId)}`
-  );
+  const url = sourceId
+    ? `/schema/catalog/assets?projectId=${encodeURIComponent(projectId)}&sourceId=${encodeURIComponent(sourceId)}`
+    : `/schema/catalog/assets?projectId=${encodeURIComponent(projectId)}`;
+  return apiRequest(url);
 }
 
 /**

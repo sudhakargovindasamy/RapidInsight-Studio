@@ -199,6 +199,7 @@ async function importTablesAsSchemas({
         originalFileName: `${tableName}.csv`,
         fileType: 'csv',
         storagePath,
+        dataStoragePath: hasData ? dataStoragePath : null,
         bucket,
         displayName,
         source: {

@@ -22,8 +22,11 @@ const {
 
 const router = express.Router();
 
+const { registerAsset } = require('../controllers/catalogController');
+
 router.post('/connect-db/test', testDatabaseConnection);
 router.post('/connect-db/import', importDatabaseTables);
+router.post('/register-asset', registerAsset);
 
 /*
  * Multer must run first because it reads the multipart/form-data

@@ -1,7 +1,7 @@
 import { buildTableNameFromFileName } from './identifierNaming.js';
 
-const ALLOWED_EXTENSIONS = ['.json', '.yaml', '.yml', '.csv'];
-const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_EXTENSIONS = ['.json', '.yaml', '.yml', '.csv', '.xlsx', '.xls'];
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 
 export function validateSchemaFile(file) {
   if (!file) {
@@ -14,7 +14,7 @@ export function validateSchemaFile(file) {
   );
 
   if (!isAllowedExtension) {
-    return { valid: false, message: 'Only JSON, YAML, YML, and CSV files are allowed.' };
+    return { valid: false, message: 'Only CSV, XLSX, XLS, JSON, YAML, and YML files are allowed.' };
   }
 
   if (file.size <= 0) {

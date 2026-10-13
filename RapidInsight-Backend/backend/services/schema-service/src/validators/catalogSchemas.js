@@ -18,9 +18,6 @@ const listAssetsQuerySchema = z.object({
 }).refine(data => data.projectId || data.project_id, {
   message: 'projectId or project_id is required.',
   path: ['projectId']
-}).refine(data => data.sourceId || data.source_id, {
-  message: 'sourceId or source_id is required.',
-  path: ['sourceId']
 });
 
 const listColumnsQuerySchema = z.object({

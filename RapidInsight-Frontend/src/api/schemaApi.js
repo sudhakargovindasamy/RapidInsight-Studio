@@ -54,3 +54,10 @@ export async function importTablesFromDatabase(payload) {
     body: JSON.stringify(payload)
   });
 }
+
+export async function registerAssetMetadata(payload) {
+  return apiRequest('/schema/register-asset', {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  });
+}
