@@ -46,7 +46,7 @@ export default function RegistryAssetPage() {
   const organisation = project?.organisation?.name || project?.organisation_name || 'Your Organisation';
 
   return (
-    <div className="schema-container registry-asset-page">
+    <div className="schema-container pws-page registry-asset-page">
       <section className="hero-card pws-hero">
         <span className="hero-kicker">
           Project Workspace · {organisation}

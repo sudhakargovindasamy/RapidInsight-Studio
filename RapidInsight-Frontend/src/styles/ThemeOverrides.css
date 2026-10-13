@@ -345,6 +345,39 @@ select:focus {
   box-shadow: var(--shadow-main);
 }
 
+.pws-hero h1,
+.ms-hero h1,
+.sp-hero h1,
+.tables-hero h1,
+.wp-hero h1,
+.playground-hero h1,
+.registry-asset-page .hero-card h1,
+.registry-asset-page .pws-section-heading h2 {
+  color: var(--text-main) !important;
+}
+
+.pws-hero p,
+.ms-hero p,
+.sp-hero p,
+.tables-hero p,
+.wp-hero p,
+.playground-hero p,
+.registry-asset-page .hero-card p,
+.registry-asset-page .pws-section-heading p {
+  color: var(--text-secondary) !important;
+}
+
+.pws-hero .hero-kicker,
+.ms-hero .hero-kicker,
+.sp-hero .hero-kicker,
+.tables-hero .hero-kicker,
+.wp-hero .hero-kicker,
+.playground-hero .hero-kicker,
+.registry-asset-page .hero-kicker {
+  color: var(--schema-primary) !important;
+  background: var(--schema-primary-soft) !important;
+}
+
 .pws-tab-row,
 .tab-list {
   border-color: var(--border-color) !important;

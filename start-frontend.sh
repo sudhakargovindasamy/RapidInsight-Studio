@@ -1,3 +1,3 @@
 #!/bin/bash
-cd /home/sudhakar/Intern/Project-RapidInsightStudio/RapidInsight-Frontend
+cd "$(dirname "$0")/RapidInsight-Frontend"
 npm run dev

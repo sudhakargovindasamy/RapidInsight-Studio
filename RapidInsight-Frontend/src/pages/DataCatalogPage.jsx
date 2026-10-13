@@ -121,48 +121,50 @@ export default function DataCatalogPage() {
         const targetSourceId =
           saved?.sourceId && sourcesList.some((s) => s.source_id === saved.sourceId)
             ? saved.sourceId
-            : sourcesList[0].source_id;
+            : '';
 
         setSelectedSourceId(targetSourceId);
 
-        // Fetch assets for the selected source
-        setLoadingAssets(true);
-        const assetsRes = await getCatalogAssets(projectId, targetSourceId);
-        const rawAssets = assetsRes?.data || assetsRes || [];
-        const assetList = Array.isArray(rawAssets) ? rawAssets : [];
-        setAssets(assetList);
+        if (targetSourceId) {
+          // Fetch assets for the selected source
+          setLoadingAssets(true);
+          const assetsRes = await getCatalogAssets(projectId, targetSourceId);
+          const rawAssets = assetsRes?.data || assetsRes || [];
+          const assetList = Array.isArray(rawAssets) ? rawAssets : [];
+          setAssets(assetList);
 
-        if (assetList.length > 0) {
           const targetAsset =
             saved?.assetId && assetList.find((a) => a.asset_id === saved.assetId)
               ? assetList.find((a) => a.asset_id === saved.assetId)
-              : assetList[0];
+              : null;
 
-          setSelectedAssetId(targetAsset.asset_id);
+          if (targetAsset) {
+            setSelectedAssetId(targetAsset.asset_id);
 
-          if (!targetAsset.is_populated) {
-            setReadinessWarning(
-              `Asset '${targetAsset.asset_name}' is not currently backed by a populated database table. Generate tables before profiling.`
-            );
-          } else {
-            setReadinessWarning('');
-          }
-
-          // Fetch columns for the selected asset
-          setLoadingColumns(true);
-          const colsRes = await getCatalogColumns(projectId, targetAsset.asset_id);
-          const rawCols = colsRes?.data || colsRes || [];
-          const colList = Array.isArray(rawCols) ? rawCols : [];
-          setColumns(colList);
-
-          // Restore column and statistic if previously selected
-          if (saved?.columnId && colList.some((c) => c.column_id === saved.columnId)) {
-            setSelectedColumnId(saved.columnId);
-            if (saved?.statistic) {
-              setSelectedStatistic(saved.statistic);
+            if (!targetAsset.is_populated) {
+              setReadinessWarning(
+                `Asset '${targetAsset.asset_name}' is not currently backed by a populated database table. Generate tables before profiling.`
+              );
+            } else {
+              setReadinessWarning('');
             }
-            if (saved?.resultData) {
-              setResultData(saved.resultData);
+
+            // Fetch columns for the selected asset
+            setLoadingColumns(true);
+            const colsRes = await getCatalogColumns(projectId, targetAsset.asset_id);
+            const rawCols = colsRes?.data || colsRes || [];
+            const colList = Array.isArray(rawCols) ? rawCols : [];
+            setColumns(colList);
+
+            // Restore column and statistic if previously selected
+            if (saved?.columnId && colList.some((c) => c.column_id === saved.columnId)) {
+              setSelectedColumnId(saved.columnId);
+              if (saved?.statistic) {
+                setSelectedStatistic(saved.statistic);
+              }
+              if (saved?.resultData) {
+                setResultData(saved.resultData);
+              }
             }
           }
         }
@@ -361,8 +363,13 @@ export default function DataCatalogPage() {
   };
 
   const handleResetBuilder = () => {
+    setSelectedSourceId('');
+    setSelectedAssetId('');
+    setAssets([]);
     setSelectedColumnId('');
+    setColumns([]);
     setSelectedStatistic('');
+    setReadinessWarning('');
     setResultData(null);
     setError('');
     try {
@@ -477,82 +484,77 @@ export default function DataCatalogPage() {
               </select>
             </div>
 
-            {/* 2. Asset */}
-            <div className="catalog-form-group">
-              <label htmlFor="catalog-asset-select" className="catalog-form-label">
-                2. Asset / Table
-              </label>
-              <select
-                id="catalog-asset-select"
-                className="catalog-select"
-                value={selectedAssetId}
-                onChange={handleAssetChange}
-                disabled={!selectedSourceId || loadingAssets}
-              >
-                <option value="">
-                  {!selectedSourceId
-                    ? '-- Select Source First --'
-                    : loadingAssets
-                    ? 'Loading assets...'
-                    : '-- Select Asset --'}
-                </option>
-                {assets.map((ast) => (
-                  <option key={ast.asset_id} value={ast.asset_id}>
-                    {ast.asset_name} {ast.is_populated ? '(Populated)' : '(Unpopulated)'}
+            {/* 2. Asset — shown after Project Source is selected */}
+            {selectedSourceId && (
+              <div className="catalog-form-group">
+                <label htmlFor="catalog-asset-select" className="catalog-form-label">
+                  2. Asset / Table
+                </label>
+                <select
+                  id="catalog-asset-select"
+                  className="catalog-select"
+                  value={selectedAssetId}
+                  onChange={handleAssetChange}
+                  disabled={loadingAssets}
+                >
+                  <option value="">
+                    {loadingAssets ? 'Loading assets...' : '-- Select Asset --'}
                   </option>
-                ))}
-              </select>
-            </div>
+                  {assets.map((ast) => (
+                    <option key={ast.asset_id} value={ast.asset_id}>
+                      {ast.asset_name} {ast.is_populated ? '(Populated)' : '(Unpopulated)'}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
-            {/* 3. Column */}
-            <div className="catalog-form-group">
-              <label htmlFor="catalog-column-select" className="catalog-form-label">
-                3. Asset Column
-              </label>
-              <select
-                id="catalog-column-select"
-                className="catalog-select"
-                value={selectedColumnId}
-                onChange={handleColumnChange}
-                disabled={!selectedAssetId || loadingColumns}
-              >
-                <option value="">
-                  {!selectedAssetId
-                    ? '-- Select Asset First --'
-                    : loadingColumns
-                    ? 'Loading columns...'
-                    : '-- Select Column --'}
-                </option>
-                {columns.map((col) => (
-                  <option key={col.column_id} value={col.column_id}>
-                    {col.column_name} [{col.data_type.toUpperCase()}]
+            {/* 3. Column — shown after Asset / Table is selected */}
+            {selectedAssetId && (
+              <div className="catalog-form-group">
+                <label htmlFor="catalog-column-select" className="catalog-form-label">
+                  3. Asset Column
+                </label>
+                <select
+                  id="catalog-column-select"
+                  className="catalog-select"
+                  value={selectedColumnId}
+                  onChange={handleColumnChange}
+                  disabled={loadingColumns}
+                >
+                  <option value="">
+                    {loadingColumns ? 'Loading columns...' : '-- Select Column --'}
                   </option>
-                ))}
-              </select>
-            </div>
+                  {columns.map((col) => (
+                    <option key={col.column_id} value={col.column_id}>
+                      {col.column_name} [{col.data_type.toUpperCase()}]
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
-            {/* 4. Statistic */}
-            <div className="catalog-form-group">
-              <label htmlFor="catalog-statistic-select" className="catalog-form-label">
-                4. Profiling Statistic
-              </label>
-              <select
-                id="catalog-statistic-select"
-                className="catalog-select"
-                value={selectedStatistic}
-                onChange={(e) => setSelectedStatistic(e.target.value)}
-                disabled={!selectedColumnId}
-              >
-                <option value="">
-                  {!selectedColumnId ? '-- Select Column First --' : '-- Select Statistic --'}
-                </option>
-                {availableStatistics.map((stat) => (
-                  <option key={stat} value={stat}>
-                    {STATISTIC_LABELS[stat] || stat}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {/* 4. Statistic — shown after Asset Column is selected */}
+            {selectedColumnId && (
+              <div className="catalog-form-group">
+                <label htmlFor="catalog-statistic-select" className="catalog-form-label">
+                  4. Profiling Statistic
+                </label>
+                <select
+                  id="catalog-statistic-select"
+                  className="catalog-select"
+                  value={selectedStatistic}
+                  onChange={(e) => setSelectedStatistic(e.target.value)}
+                >
+                  <option value="">-- Select Statistic --</option>
+                  {availableStatistics.map((stat) => (
+                    <option key={stat} value={stat}>
+                      {STATISTIC_LABELS[stat] || stat}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           {/* Empty Sources Notice */}
@@ -579,31 +581,33 @@ export default function DataCatalogPage() {
             </div>
           )}
 
-          {/* Action Row */}
-          <div className="catalog-action-row">
-            <button
-              type="button"
-              className="catalog-btn-primary"
-              disabled={!canRun}
-              onClick={handleRunProfile}
-            >
-              {runningQuery ? (
-                <>
-                  <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <circle cx="12" cy="12" r="10" strokeDasharray="32" strokeDashoffset="12" />
-                  </svg>
-                  <span>Running Query...</span>
-                </>
-              ) : (
-                <>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <polygon points="5 3 19 12 5 21 5 3" />
-                  </svg>
-                  <span>Run Profiling</span>
-                </>
-              )}
-            </button>
-          </div>
+          {/* Action Row — shown after Profiling Statistic is selected */}
+          {selectedStatistic && (
+            <div className="catalog-action-row">
+              <button
+                type="button"
+                className="catalog-btn-primary"
+                disabled={!canRun}
+                onClick={handleRunProfile}
+              >
+                {runningQuery ? (
+                  <>
+                    <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <circle cx="12" cy="12" r="10" strokeDasharray="32" strokeDashoffset="12" />
+                    </svg>
+                    <span>Running Query...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <polygon points="5 3 19 12 5 21 5 3" />
+                    </svg>
+                    <span>Run Profiling</span>
+                  </>
+                )}
+              </button>
+            </div>
+          )}
         </div>
       )}
 
