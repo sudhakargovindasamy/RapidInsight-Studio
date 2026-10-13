@@ -292,10 +292,12 @@ Ensure you have the following installed on your machine:
 
 ---
 
-## 👥 Authors & Acknowledgments
+## 👥 Authors & Contributors
 
-- **Lead Developer:** [Sudhakar Govindasamy](https://github.com/sudhakargovindasamy)
-- **Project:** RapidInsight Studio
+| Name | Role | GitHub Profile |
+| :--- | :--- | :--- |
+| **Sudhakar Govindasamy** | Project Lead & Full-Stack Developer | [@sudhakargovindasamy](https://github.com/sudhakargovindasamy) |
+| **Kavi Varshini J** | Contributor & Teammate | [@JKaviVarshini](https://github.com/JKaviVarshini) |
 
 ---
 
