@@ -9,7 +9,8 @@ const {
   listCatalogAssets,
   listCatalogColumns,
   runProfileStatistic,
-  listProfilingHistory
+  listProfilingHistory,
+  getProfilingHistoryItem
 } = require('../backend/services/schema-service/src/services/catalogProfilingService');
 
 const {
@@ -202,6 +203,23 @@ async function runProfilingHistoryTestSuite() {
       dbClient: client
     });
     assert(isolatedHistory.length === 0, 'Unrelated project sees zero profiling results');
+
+    // TEST 8: Retrieve specific historical run with automatic insights, visualizations, and verified column profiles
+    console.log('\n[Scenario 8] Fetching specific historical profiling run with insights & charts...');
+    const historyDetail = await getProfilingHistoryItem({
+      projectId,
+      resultId: run1Result.resultId,
+      dbClient: client
+    });
+
+    assert(Boolean(historyDetail), 'Retrieved historical profiling item');
+    assert(historyDetail.resultId === run1Result.resultId, 'History item resultId matches');
+    assert(historyDetail.isHistorical === true, 'History item marked as isHistorical');
+    assert(Array.isArray(historyDetail.insights) && historyDetail.insights.length > 0, `History item contains ${historyDetail.insights?.length} rule-based insights`);
+    assert(Array.isArray(historyDetail.charts) && historyDetail.charts.length > 0, `History item contains ${historyDetail.charts?.length} visualization datasets`);
+    assert(Array.isArray(historyDetail.columnProfiles) && historyDetail.columnProfiles.length > 0, `History item contains ${historyDetail.columnProfiles?.length} verified column profiles`);
+    assert(historyDetail.statistic === 'COUNT', 'History item retained correct statistic');
+    console.log(`  Historical item verified: ${historyDetail.insights.length} insights, ${historyDetail.charts.length} charts, ${historyDetail.columnProfiles.length} column profiles`);
 
     console.log(`\n========================================`);
     console.log(`ALL TESTS PASSED: ${passedCount}/${totalTests}`);

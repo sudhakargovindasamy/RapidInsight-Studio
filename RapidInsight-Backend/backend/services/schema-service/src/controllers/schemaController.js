@@ -519,7 +519,8 @@ async function deleteSchema(req, res, next) {
 
 const {
   testAndDiscoverTables,
-  importTablesAsSchemas
+  importTablesAsSchemas,
+  getDatabaseTableColumns
 } = require('../services/dbConnectionService');
 
 async function testDatabaseConnection(req, res, next) {
@@ -582,6 +583,30 @@ async function importDatabaseTables(req, res, next) {
   }
 }
 
+async function getDatabaseTableColumnsHandler(req, res, next) {
+  try {
+    const connectionConfig = req.body.connectionConfig;
+    const schema = req.body.schema || 'public';
+    const table = req.body.table;
+
+    if (!connectionConfig) {
+      throw new AppError('Connection configuration is required.', 400, 'CONNECTION_CONFIG_REQUIRED');
+    }
+    if (!table) {
+      throw new AppError('Table name is required.', 400, 'TABLE_NAME_REQUIRED');
+    }
+
+    const columns = await getDatabaseTableColumns(connectionConfig, schema, table);
+    return res.status(200).json({
+      success: true,
+      columns,
+      requestId: req.id
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
 module.exports = {
   uploadSchema,
   listSchemas,
@@ -590,5 +615,6 @@ module.exports = {
   retrySeedRows,
   getProjectSeedStatus,
   testDatabaseConnection,
+  getDatabaseTableColumnsHandler,
   importDatabaseTables
 };

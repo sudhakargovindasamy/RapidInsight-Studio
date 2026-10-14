@@ -214,16 +214,9 @@ export default function Sidebar({
           Registry Assest
         </ProjectNavLink>
 
-        <ExpandableNavItem
-          to={`${projectBase}/data-ingestion`}
-          icon="ingestion"
-          label="Data Ingestion"
-          items={[
-            { label: 'Profile Source', to: `${projectBase}/data-ingestion?step=profile-source`, query: 'step=profile-source' },
-            { label: 'Asset List', to: `${projectBase}/data-ingestion?step=asset-list`, query: 'step=asset-list' },
-            { label: 'Load Data', to: `${projectBase}/data-ingestion?step=load-data`, query: 'step=load-data' }
-          ]}
-        />
+        <ProjectNavLink to={`${projectBase}/data-ingestion`} icon="ingestion">
+          Data Ingestion
+        </ProjectNavLink>
 
         <ProjectNavLink to={`${projectBase}/playground`} icon="playground">
           Schema Playground

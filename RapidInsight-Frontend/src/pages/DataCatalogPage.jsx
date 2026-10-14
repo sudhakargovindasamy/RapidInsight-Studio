@@ -1,13 +1,262 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+} from 'chart.js';
+import { Bar, Line } from 'react-chartjs-2';
+
 import {
   getCatalogSources,
   getCatalogAssets,
   getCatalogColumns,
   runProfileStat,
-  getProfilingHistory
+  getProfilingHistory,
+  getProfilingHistoryItem
 } from '../api/catalogApi.js';
 import './DataCatalogPage.css';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
+
+function CatalogChartCard({ chart }) {
+  const isLine = chart.type === 'line';
+  const initialLabels = chart.data?.labels || [];
+  const initialDatasets = chart.data?.datasets || [];
+  const totalCategories = initialLabels.length;
+
+  // Horizontal layout is much cleaner whenever there are more than 6 categories or if full width
+  const [orientation, setOrientation] = useState(() => {
+    if (isLine) return 'x';
+    return totalCategories > 6 || chart.isFullWidth ? 'y' : 'x';
+  });
+
+  // Category view limit: Top 10, Top 25, or All
+  const [itemLimit, setItemLimit] = useState(() => {
+    if (totalCategories > 30) return 25;
+    return 'all';
+  });
+
+  const isHorizontal = orientation === 'y';
+
+  // Compute filtered labels and values
+  const { displayedLabels, displayedDatasets } = useMemo(() => {
+    if (itemLimit === 'all' || isLine || totalCategories <= 10) {
+      return { displayedLabels: initialLabels, displayedDatasets: initialDatasets };
+    }
+    const limitNum = Number(itemLimit);
+    const slicedLabels = initialLabels.slice(0, limitNum);
+    const slicedDatasets = initialDatasets.map((ds) => ({
+      ...ds,
+      data: Array.isArray(ds.data) ? ds.data.slice(0, limitNum) : ds.data,
+      backgroundColor: Array.isArray(ds.backgroundColor) ? ds.backgroundColor.slice(0, limitNum) : ds.backgroundColor
+    }));
+    return { displayedLabels: slicedLabels, displayedDatasets: slicedDatasets };
+  }, [initialLabels, initialDatasets, itemLimit, isLine, totalCategories]);
+
+  // Dynamic canvas height when horizontal so each bar has comfortable breathing room
+  const canvasHeight = useMemo(() => {
+    if (isLine) return 280;
+    if (isHorizontal) {
+      return Math.max(260, displayedLabels.length * 30);
+    }
+    return 320;
+  }, [isLine, isHorizontal, displayedLabels.length]);
+
+  // Enhanced dataset with rounded corners, maxBarThickness, and sleek colors
+  const finalData = useMemo(() => {
+    return {
+      labels: displayedLabels,
+      datasets: displayedDatasets.map((ds, idx) => ({
+        ...ds,
+        borderRadius: isHorizontal
+          ? { topRight: 6, bottomRight: 6, topLeft: 0, bottomLeft: 0 }
+          : { topLeft: 6, topRight: 6, bottomLeft: 0, bottomRight: 0 },
+        maxBarThickness: isHorizontal ? 22 : 36,
+        barPercentage: 0.85,
+        categoryPercentage: 0.85,
+        backgroundColor: ds.backgroundColor || (idx === 0 ? '#6366f1' : '#a855f7'),
+        hoverBackgroundColor: '#4f46e5'
+      }))
+    };
+  }, [displayedLabels, displayedDatasets, isHorizontal]);
+
+  // Options customized for the chosen orientation and theme
+  const chartOptions = useMemo(() => {
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: orientation,
+      animation: {
+        duration: 350
+      },
+      plugins: {
+        legend: {
+          display: initialDatasets.length > 1,
+          position: 'top',
+          align: 'end',
+          labels: {
+            color: '#94a3b8',
+            boxWidth: 10,
+            boxHeight: 10,
+            usePointStyle: true,
+            font: { size: 11, weight: '600' }
+          }
+        },
+        tooltip: {
+          backgroundColor: '#0f172a',
+          borderColor: 'rgba(148, 163, 184, 0.25)',
+          borderWidth: 1,
+          padding: 12,
+          cornerRadius: 8,
+          titleFont: { size: 12, weight: '700' },
+          bodyFont: { size: 12 },
+          displayColors: true,
+          boxWidth: 8,
+          boxHeight: 8,
+          callbacks: {
+            title: (items) => {
+              return items?.[0]?.label || '';
+            },
+            label: (item) => {
+              const val = isHorizontal ? item.parsed?.x : item.parsed?.y;
+              const formattedVal = Number(val).toLocaleString();
+              return ` ${item.dataset.label || 'Count'}: ${formattedVal}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: {
+            color: isHorizontal ? 'rgba(148, 163, 184, 0.08)' : 'transparent',
+            drawBorder: false
+          },
+          border: {
+            color: 'rgba(148, 163, 184, 0.15)'
+          },
+          ticks: {
+            color: '#94a3b8',
+            font: { size: 10 },
+            maxRotation: isHorizontal ? 0 : 35,
+            minRotation: 0,
+            autoSkip: true,
+            maxTicksLimit: isHorizontal ? 8 : 20
+          }
+        },
+        y: {
+          grid: {
+            color: isHorizontal ? 'transparent' : 'rgba(148, 163, 184, 0.08)',
+            drawBorder: false
+          },
+          border: {
+            color: 'rgba(148, 163, 184, 0.15)'
+          },
+          ticks: {
+            color: '#94a3b8',
+            font: { size: 10.5, weight: isHorizontal ? '500' : '400' },
+            autoSkip: !isHorizontal,
+            callback: function (val) {
+              if (isHorizontal) {
+                const label = this.getLabelForValue(val);
+                return label.length > 22 ? label.slice(0, 20) + '…' : label;
+              }
+              return Number(val).toLocaleString();
+            }
+          }
+        }
+      }
+    };
+  }, [orientation, isHorizontal, initialDatasets.length]);
+
+  return (
+    <div className={`catalog-chart-card ${chart.isFullWidth ? 'catalog-chart-card--full-width' : ''}`}>
+      <div className="catalog-chart-card-header">
+        <div className="catalog-chart-title-area">
+          <div className="catalog-chart-title-row">
+            <h4>{chart.title}</h4>
+            <span className="catalog-chart-count-pill">{totalCategories} items</span>
+          </div>
+          {chart.description && <p>{chart.description}</p>}
+        </div>
+
+        <div className="catalog-chart-controls">
+          {!isLine && totalCategories > 10 && (
+            <div className="catalog-chart-pill-group">
+              <button
+                type="button"
+                className={`catalog-pill-btn ${itemLimit === 10 ? 'active' : ''}`}
+                onClick={() => setItemLimit(10)}
+              >
+                Top 10
+              </button>
+              {totalCategories > 25 && (
+                <button
+                  type="button"
+                  className={`catalog-pill-btn ${itemLimit === 25 ? 'active' : ''}`}
+                  onClick={() => setItemLimit(25)}
+                >
+                  Top 25
+                </button>
+              )}
+              <button
+                type="button"
+                className={`catalog-pill-btn ${itemLimit === 'all' ? 'active' : ''}`}
+                onClick={() => setItemLimit('all')}
+              >
+                All ({totalCategories})
+              </button>
+            </div>
+          )}
+
+          {!isLine && (
+            <button
+              type="button"
+              className="catalog-pill-btn catalog-orient-btn"
+              onClick={() => setOrientation((o) => (o === 'x' ? 'y' : 'x'))}
+              title={`Switch to ${isHorizontal ? 'Vertical' : 'Horizontal'} layout`}
+            >
+              {isHorizontal ? '↕ Vertical' : '⇄ Horizontal'}
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div
+        className="catalog-chart-scroll-box"
+        style={{
+          maxHeight: isHorizontal && displayedLabels.length > 10 ? '420px' : 'auto',
+          overflowY: isHorizontal && displayedLabels.length > 10 ? 'auto' : 'visible'
+        }}
+      >
+        <div style={{ height: `${canvasHeight}px`, position: 'relative', width: '100%' }}>
+          {isLine ? (
+            <Line data={finalData} options={chartOptions} />
+          ) : (
+            <Bar data={finalData} options={chartOptions} />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const NUMERIC_TYPES = new Set([
   'number',
@@ -60,9 +309,281 @@ function formatDateTime(isoString) {
   }
 }
 
+function ProfilingResultView({ resultData, onRunAnother, onBack, isHistorical = false }) {
+  const profile = resultData?.assetProfile || (resultData?.summary ? resultData : null);
+
+  return (
+    <div className="catalog-result-container">
+      {/* Unpopulated Asset Notice */}
+      {resultData && resultData.isPopulated === false && (
+        <div className="catalog-unpopulated-banner">
+          <div className="catalog-unpopulated-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </div>
+          <div className="catalog-unpopulated-content">
+            <h3>No Data Loaded for This Asset</h3>
+            <p>{resultData.message || 'The selected asset is not backed by loaded business rows in the database. Ingest data first to enable SQL profiling.'}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Single Statistic Results Card (if specific statistic was run) */}
+      {resultData && resultData.statistic && (
+        <div className="catalog-results-card">
+          <div className="catalog-card-header">
+            <div>
+              <h2>{isHistorical ? 'Historical Profiling Run' : 'Profiling Result'}</h2>
+              <span className="catalog-metric-subtext">
+                Target: <strong>{resultData.assetName}</strong>.<strong>{resultData.columnName}</strong> ({resultData.dataType})
+              </span>
+            </div>
+            {onRunAnother && (
+              <button
+                type="button"
+                className="catalog-btn-ghost"
+                onClick={onRunAnother}
+              >
+                + Run Another Profiling
+              </button>
+            )}
+          </div>
+
+          <div className="catalog-results-metrics">
+            <div className="catalog-metric-box">
+              <span className="catalog-metric-label">Statistic</span>
+              <strong className="catalog-metric-value">
+                {STATISTIC_LABELS[resultData.statistic] || resultData.statistic}
+              </strong>
+            </div>
+
+            <div className="catalog-metric-box">
+              <span className="catalog-metric-label">Result Value</span>
+              <strong className="catalog-metric-value">
+                {resultData.result !== null && resultData.result !== undefined
+                  ? String(resultData.result)
+                  : 'N/A'}
+              </strong>
+            </div>
+
+            <div className="catalog-metric-box">
+              <span className="catalog-metric-label">Sample Size</span>
+              <strong className="catalog-metric-value">
+                {resultData.sampleSize?.toLocaleString?.() ?? resultData.sampleSize}
+              </strong>
+              <span className="catalog-metric-subtext">Total active rows</span>
+            </div>
+
+            <div className="catalog-metric-box">
+              <span className="catalog-metric-label">Execution Time</span>
+              <strong className="catalog-metric-value">
+                {resultData.executionDurationMs} ms
+              </strong>
+              <span className="catalog-metric-subtext">Server duration</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SQL Analytical Insights & Visualizations Section */}
+      {profile && profile.isPopulated !== false && (
+        <div className="catalog-insights-section">
+          <div className="catalog-card-header">
+            <div>
+              <h2>SQL-Based Automatic Insights & Profiling</h2>
+              <span className="catalog-metric-subtext">
+                Generated via deterministic SQL execution against physical table{' '}
+                <code>{profile.physicalSchema || profile.physicalSchemaName}.{profile.physicalTable || profile.physicalTableName}</code>{' '}
+                ({(profile.summary?.totalRows || resultData?.totalRows || profile.totalRows || 0).toLocaleString()} rows) in {profile.executionDurationMs || resultData?.executionDurationMs || 0} ms.
+              </span>
+            </div>
+          </div>
+
+          {/* KPI Cards */}
+          <div className="catalog-kpi-grid">
+            <div className="catalog-kpi-card">
+              <span className="catalog-kpi-label">Populated Rows</span>
+              <strong className="catalog-kpi-val">{(profile.summary?.totalRows ?? resultData?.totalRows ?? profile.totalRows ?? 0).toLocaleString()}</strong>
+              <span className="catalog-kpi-sub">Actual records in database</span>
+            </div>
+            <div className="catalog-kpi-card">
+              <span className="catalog-kpi-label">Analyzed Columns</span>
+              <strong className="catalog-kpi-val">{profile.summary?.totalColumns ?? profile.totalColumns ?? resultData?.totalColumns ?? 1}</strong>
+              <span className="catalog-kpi-sub">
+                {profile.summary?.numericColumnsCount || 0} numeric, {profile.summary?.textColumnsCount || 0} text, {profile.summary?.dateColumnsCount || 0} date
+              </span>
+            </div>
+            <div className="catalog-kpi-card">
+              <span className="catalog-kpi-label">Overall Completeness</span>
+              <strong className="catalog-kpi-val">{profile.summary?.overallCompletenessPct ?? profile.tableQuality?.overallCompleteness ?? 100}%</strong>
+              <span className="catalog-kpi-sub">
+                {(profile.summary?.missingCells || 0).toLocaleString()} missing cells across table
+              </span>
+            </div>
+            <div className="catalog-kpi-card">
+              <span className="catalog-kpi-label">Analysis Speed</span>
+              <strong className="catalog-kpi-val">{profile.executionDurationMs || resultData?.executionDurationMs || 0} ms</strong>
+              <span className="catalog-kpi-sub">Bounded SQL aggregates</span>
+            </div>
+          </div>
+
+          {/* Rule-Based Insights */}
+          {profile.insights && profile.insights.length > 0 && (
+            <div className="catalog-insights-block">
+              <h3 className="catalog-block-title">Deterministic Analytical Insights</h3>
+              <div className="catalog-insights-grid">
+                {profile.insights.map((ins) => (
+                  <div key={ins.id} className={`catalog-insight-item insight-${ins.type || 'info'}`}>
+                    <div className="insight-badge-row">
+                      <span className="insight-category-badge">{ins.category}</span>
+                      <span className={`insight-type-badge type-${ins.type}`}>
+                        {ins.type === 'positive' ? 'Healthy' : ins.type === 'warning' ? 'Notice' : 'Info'}
+                      </span>
+                    </div>
+                    <h4 className="insight-title">{ins.title}</h4>
+                    <p className="insight-description">{ins.description || ins.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Visualizations Grid */}
+          {(() => {
+            let displayCharts = profile.charts || [];
+            if (resultData?.columnName) {
+              const colNorm = resultData.columnName.toLowerCase();
+              const matched = displayCharts.filter(
+                (c) =>
+                  c.id?.toLowerCase().includes(colNorm) ||
+                  c.title?.toLowerCase().includes(colNorm)
+              );
+              if (matched.length > 0) {
+                displayCharts = matched;
+              }
+            }
+
+            if (!displayCharts.length) return null;
+
+            return (
+              <div className="catalog-charts-block">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '8px' }}>
+                  <h3 className="catalog-block-title" style={{ margin: 0 }}>
+                    SQL-Generated Analytical Visualizations
+                  </h3>
+                  {resultData?.columnName && (
+                    <span className="catalog-history-stat-badge" style={{ fontSize: '0.82rem', padding: '4px 10px', background: 'rgba(92, 124, 250, 0.15)', color: '#818cf8', border: '1px solid rgba(92, 124, 250, 0.3)' }}>
+                      Target: {resultData.columnName} {resultData.statistic ? `• ${STATISTIC_LABELS[resultData.statistic] || resultData.statistic}` : ''}
+                    </span>
+                  )}
+                </div>
+                <div className="catalog-charts-grid">
+                  {displayCharts.map((chart) => (
+                    <CatalogChartCard key={chart.id} chart={chart} />
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Detailed Column Profiles Breakdown */}
+          {profile.columnProfiles && profile.columnProfiles.length > 0 && (
+            <div className="catalog-columns-block">
+              <h3 className="catalog-block-title">Verified Column Profiles</h3>
+              <div className="catalog-history-table-container">
+                <table className="catalog-history-table">
+                  <thead>
+                    <tr>
+                      <th>Column Name</th>
+                      <th>Data Type</th>
+                      <th>Completeness</th>
+                      <th>Nulls</th>
+                      <th>Distinct Values</th>
+                      <th>Statistical Highlights</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {profile.columnProfiles.map((cp) => (
+                      <tr key={cp.columnName}>
+                        <td><strong>{cp.columnName}</strong></td>
+                        <td>
+                          <span className="catalog-history-stat-badge">
+                            {(cp.dataType || '').toUpperCase()}
+                          </span>
+                        </td>
+                        <td>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div style={{
+                              width: '60px',
+                              height: '6px',
+                              background: 'rgba(255,255,255,0.1)',
+                              borderRadius: '3px',
+                              overflow: 'hidden'
+                            }}>
+                              <div style={{
+                                width: `${cp.completenessPct}%`,
+                                height: '100%',
+                                background: cp.completenessPct === 100 ? '#10b981' : cp.completenessPct > 80 ? '#3b82f6' : '#f59e0b'
+                              }} />
+                            </div>
+                            <span>{cp.completenessPct}%</span>
+                          </div>
+                        </td>
+                        <td>{cp.nullCount}</td>
+                        <td>{cp.distinctCount}</td>
+                        <td style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                          {cp.numericStats ? (
+                            <span>
+                              Min: <strong>{cp.numericStats.min}</strong> | Max: <strong>{cp.numericStats.max}</strong> | Avg: <strong>{cp.numericStats.avg}</strong> | Med: <strong>{cp.numericStats.median}</strong>
+                              {cp.numericStats.outlierCount > 0 && ` | Outliers: ${cp.numericStats.outlierCount}`}
+                            </span>
+                          ) : cp.categoryStats?.topValues?.length > 0 ? (
+                            <span>
+                              Top: {cp.categoryStats.topValues.slice(0, 3).map(v => `${v.value || '(blank)'} (${v.percentage}%)`).join(', ')}
+                            </span>
+                          ) : cp.dateStats?.minDate ? (
+                            <span>
+                              Span: {cp.dateStats.minDate} to {cp.dateStats.maxDate}
+                            </span>
+                          ) : (
+                            '—'
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {isHistorical && onBack && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.5rem', flexWrap: 'wrap', gap: '12px' }}>
+              <button type="button" className="catalog-back-btn" onClick={onBack}>
+                ← Back to Profiling History
+              </button>
+              {onRunAnother && (
+                <button type="button" className="catalog-history-view-btn" onClick={onRunAnother}>
+                  <span>+ Run New Profiling</span>
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 
 export default function DataCatalogPage() {
-  const { projectId } = useParams();
+  const { projectId, historyId: routeHistoryId } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const activeHistoryId = routeHistoryId || searchParams.get('historyId');
 
   // Mode: 'empty' or 'builder'
   const [isBuilderOpen, setIsBuilderOpen] = useState(false);
@@ -93,6 +614,64 @@ export default function DataCatalogPage() {
   const [profilingHistory, setProfilingHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
+  // Dedicated history item inspection state
+  const [historyResultData, setHistoryResultData] = useState(null);
+  const [loadingHistoryItem, setLoadingHistoryItem] = useState(false);
+  const [historyItemError, setHistoryItemError] = useState('');
+
+  // Load specific historical profiling run when activeHistoryId is set
+  useEffect(() => {
+    if (!activeHistoryId || !projectId) {
+      setHistoryResultData(null);
+      setHistoryItemError('');
+      return;
+    }
+
+    let isMounted = true;
+    const fetchHistoryDetail = async () => {
+      try {
+        setLoadingHistoryItem(true);
+        setHistoryItemError('');
+        const res = await getProfilingHistoryItem(projectId, activeHistoryId);
+        const item = res?.data || res;
+        if (isMounted) {
+          setHistoryResultData(item);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setHistoryItemError(err?.message || 'Failed to load historical profiling result.');
+        }
+      } finally {
+        if (isMounted) {
+          setLoadingHistoryItem(false);
+        }
+      }
+    };
+
+    fetchHistoryDetail();
+    return () => {
+      isMounted = false;
+    };
+  }, [projectId, activeHistoryId]);
+
+  const handleViewHistoryItem = (resultId) => {
+    if (!resultId) return;
+    setSearchParams({ historyId: resultId });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleBackToHistory = () => {
+    if (routeHistoryId) {
+      navigate(`/projects/${projectId}/catalog`);
+    } else {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete('historyId');
+      setSearchParams(nextParams);
+    }
+    setHistoryResultData(null);
+    setHistoryItemError('');
+  };
+
   // 1. Fetch sources and existing catalog data on mount or project switch
   const loadCatalogData = useCallback(async () => {
     if (!projectId) return;
@@ -101,7 +680,7 @@ export default function DataCatalogPage() {
       setLoadingSources(true);
       setError('');
 
-      const res = await getCatalogSources(projectId);
+      const res = await getCatalogSources(projectId, { loadedOnly: true });
       const items = res?.data || res || [];
       const sourcesList = Array.isArray(items) ? items : [];
       setSources(sourcesList);
@@ -130,12 +709,15 @@ export default function DataCatalogPage() {
           setLoadingAssets(true);
           const assetsRes = await getCatalogAssets(projectId, targetSourceId);
           const rawAssets = assetsRes?.data || assetsRes || [];
-          const assetList = Array.isArray(rawAssets) ? rawAssets : [];
+          const populatedList = (Array.isArray(rawAssets) ? rawAssets : []).filter((a) => a.is_populated);
+          const assetList = populatedList.length ? populatedList : (Array.isArray(rawAssets) ? rawAssets : []);
           setAssets(assetList);
 
           const targetAsset =
             saved?.assetId && assetList.find((a) => a.asset_id === saved.assetId)
               ? assetList.find((a) => a.asset_id === saved.assetId)
+              : assetList.length === 1
+              ? assetList[0]
               : null;
 
           if (targetAsset) {
@@ -222,12 +804,27 @@ export default function DataCatalogPage() {
     try {
       setLoadingAssets(true);
       const res = await getCatalogAssets(projectId, sourceId);
-      const items = res?.data || res || [];
+      const rawAssets = res?.data || res || [];
+      const populatedList = (Array.isArray(rawAssets) ? rawAssets : []).filter((a) => a.is_populated);
+      const items = populatedList.length ? populatedList : (Array.isArray(rawAssets) ? rawAssets : []);
       setAssets(items);
+
+      // If only 1 asset exists for this loaded file, automatically select it and fetch its columns
+      if (items.length === 1) {
+        const onlyAsset = items[0];
+        setSelectedAssetId(onlyAsset.asset_id);
+        setReadinessWarning('');
+        setLoadingColumns(true);
+        const colsRes = await getCatalogColumns(projectId, onlyAsset.asset_id);
+        const colList = colsRes?.data || colsRes || [];
+        setColumns(Array.isArray(colList) ? colList : []);
+        setLoadingColumns(false);
+      }
     } catch (err) {
       setError(err?.message || 'Failed to fetch catalog assets.');
     } finally {
       setLoadingAssets(false);
+      setLoadingColumns(false);
     }
   };
 
@@ -292,17 +889,14 @@ export default function DataCatalogPage() {
     return assets.find((a) => a.asset_id === selectedAssetId) || null;
   }, [assets, selectedAssetId]);
 
-  // Can run check
+  // Can run check - user can run profiling whenever source and asset are selected
   const canRun = useMemo(() => {
     return (
       Boolean(selectedSourceId) &&
       Boolean(selectedAssetId) &&
-      Boolean(selectedColumnId) &&
-      Boolean(selectedStatistic) &&
-      Boolean(selectedAsset?.is_populated) &&
       !runningQuery
     );
-  }, [selectedSourceId, selectedAssetId, selectedColumnId, selectedStatistic, selectedAsset, runningQuery]);
+  }, [selectedSourceId, selectedAssetId, runningQuery]);
 
   // Load profiling history from database
   const loadProfilingHistory = useCallback(async () => {
@@ -331,11 +925,16 @@ export default function DataCatalogPage() {
       setError('');
       setResultData(null);
 
-      const res = await runProfileStat({
+      const payload = {
         projectId,
-        columnId: selectedColumnId,
-        statistic: selectedStatistic
-      });
+        assetId: selectedAssetId
+      };
+      if (selectedColumnId && selectedStatistic) {
+        payload.columnId = selectedColumnId;
+        payload.statistic = selectedStatistic;
+      }
+
+      const res = await runProfileStat(payload);
 
       const data = res?.data || res;
       setResultData(data);
@@ -414,7 +1013,7 @@ export default function DataCatalogPage() {
       )}
 
       {/* Initial Empty State (when project has no catalog entries) */}
-      {!initialLoading && !isBuilderOpen && (
+      {!activeHistoryId && !initialLoading && !isBuilderOpen && (
         <div className="catalog-empty-card">
           <div className="catalog-empty-icon">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -443,7 +1042,7 @@ export default function DataCatalogPage() {
       )}
 
       {/* Query Configuration Form */}
-      {!initialLoading && isBuilderOpen && (
+      {!activeHistoryId && !initialLoading && isBuilderOpen && (
         <div className="catalog-card">
           <div className="catalog-card-header">
             <h2>Query Configuration</h2>
@@ -460,7 +1059,7 @@ export default function DataCatalogPage() {
             {/* 1. Source */}
             <div className="catalog-form-group">
               <label htmlFor="catalog-source-select" className="catalog-form-label">
-                1. Project Source
+                1. Project Source (Loaded Data File)
               </label>
               <select
                 id="catalog-source-select"
@@ -473,12 +1072,12 @@ export default function DataCatalogPage() {
                   {loadingSources
                     ? 'Loading sources...'
                     : sources.length === 0
-                    ? '-- No sources found (upload schemas in Overview first) --'
-                    : '-- Select Source --'}
+                    ? '-- No loaded data files found (ingest data in Data Ingestion first) --'
+                    : '-- Select Loaded Data File --'}
                 </option>
                 {sources.map((src) => (
                   <option key={src.source_id} value={src.source_id}>
-                    {src.source_name} ({src.source_type})
+                    {src.source_name}
                   </option>
                 ))}
               </select>
@@ -581,8 +1180,8 @@ export default function DataCatalogPage() {
             </div>
           )}
 
-          {/* Action Row — shown after Profiling Statistic is selected */}
-          {selectedStatistic && (
+          {/* Action Row — shown after Asset is selected */}
+          {selectedAssetId && (
             <div className="catalog-action-row">
               <button
                 type="button"
@@ -611,63 +1210,78 @@ export default function DataCatalogPage() {
         </div>
       )}
 
-      {/* Results Card */}
-      {resultData && (
-        <div className="catalog-results-card">
-          <div className="catalog-card-header">
-            <div>
-              <h2>Profiling Result</h2>
-              <span className="catalog-metric-subtext">
-                Target: <strong>{resultData.assetName}</strong>.<strong>{resultData.columnName}</strong> ({resultData.dataType})
-              </span>
-            </div>
-            <button
-              type="button"
-              className="catalog-btn-ghost"
-              onClick={handleRunAnother}
-            >
-              + Run Another Profiling
-            </button>
-          </div>
-
-          <div className="catalog-results-metrics">
-            <div className="catalog-metric-box">
-              <span className="catalog-metric-label">Statistic</span>
-              <strong className="catalog-metric-value">
-                {STATISTIC_LABELS[resultData.statistic] || resultData.statistic}
-              </strong>
-            </div>
-
-            <div className="catalog-metric-box">
-              <span className="catalog-metric-label">Result Value</span>
-              <strong className="catalog-metric-value">
-                {resultData.result !== null && resultData.result !== undefined
-                  ? String(resultData.result)
-                  : 'N/A'}
-              </strong>
-            </div>
-
-            <div className="catalog-metric-box">
-              <span className="catalog-metric-label">Sample Size</span>
-              <strong className="catalog-metric-value">
-                {resultData.sampleSize?.toLocaleString?.() ?? resultData.sampleSize}
-              </strong>
-              <span className="catalog-metric-subtext">Total active rows</span>
-            </div>
-
-            <div className="catalog-metric-box">
-              <span className="catalog-metric-label">Execution Time</span>
-              <strong className="catalog-metric-value">
-                {resultData.executionDurationMs} ms
-              </strong>
-              <span className="catalog-metric-subtext">Server duration</span>
+      {/* Dedicated Historical Profiling Result View ("The New Page") */}
+      {activeHistoryId && (
+        <div className="catalog-history-detail-view">
+          <div className="catalog-historical-header-card">
+            <div className="catalog-historical-nav-row">
+              <button
+                type="button"
+                className="catalog-back-btn"
+                onClick={handleBackToHistory}
+              >
+                ← Back to Profiling History
+              </button>
+              <div className="catalog-historical-badge-group">
+                <span className="catalog-historical-run-badge">
+                  ⏱ Historical Run {historyResultData?.createdAt ? `• ${formatDateTime(historyResultData.createdAt)}` : ''}
+                </span>
+                {historyResultData?.assetName && (
+                  <span className="catalog-history-stat-badge">
+                    Asset: <strong>{historyResultData.assetName}</strong>
+                  </span>
+                )}
+                {historyResultData?.columnName && (
+                  <span className="catalog-history-stat-badge">
+                    Column: <code>{historyResultData.columnName}</code>
+                  </span>
+                )}
+                {historyResultData?.statistic && (
+                  <span className="catalog-history-stat-badge">
+                    Statistic: <strong>{STATISTIC_LABELS[historyResultData.statistic] || historyResultData.statistic}</strong>
+                  </span>
+                )}
+              </div>
             </div>
           </div>
+
+          {loadingHistoryItem ? (
+            <div className="catalog-history-loading">
+              <div className="catalog-spinner" aria-hidden="true" />
+              <span>Loading historical profiling report & analytical visualizations...</span>
+            </div>
+          ) : historyItemError ? (
+            <div className="catalog-error-banner" style={{ margin: '2rem 0' }}>
+              <p>{historyItemError}</p>
+              <button type="button" className="catalog-back-btn" onClick={handleBackToHistory} style={{ marginTop: '1rem' }}>
+                ← Return to Profiling History
+              </button>
+            </div>
+          ) : historyResultData ? (
+            <ProfilingResultView
+              resultData={historyResultData}
+              onRunAnother={() => {
+                handleBackToHistory();
+                handleOpenBuilder();
+              }}
+              isHistorical={true}
+              onBack={handleBackToHistory}
+            />
+          ) : null}
         </div>
       )}
 
-      {/* Profiling History Table */}
-      {!initialLoading && (
+      {/* Live Result View (when not inspecting historical record) */}
+      {!activeHistoryId && resultData && (
+        <ProfilingResultView
+          resultData={resultData}
+          onRunAnother={handleRunAnother}
+          isHistorical={false}
+        />
+      )}
+
+      {/* Profiling History Table (shown when not viewing historical record) */}
+      {!activeHistoryId && !initialLoading && (
         <div className="catalog-history-card">
           <div className="catalog-card-header">
             <div className="catalog-history-header-title">
@@ -701,11 +1315,17 @@ export default function DataCatalogPage() {
                     <th>Result Value</th>
                     <th>Sample Size</th>
                     <th>Duration</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {profilingHistory.map((item) => (
-                    <tr key={item.result_id}>
+                    <tr
+                      key={item.result_id}
+                      className="catalog-history-row-clickable"
+                      onClick={() => handleViewHistoryItem(item.result_id)}
+                      title="Click to view full SQL insights, visualizations, and column profiles"
+                    >
                       <td style={{ whiteSpace: 'nowrap' }}>{formatDateTime(item.created_at)}</td>
                       <td>{item.source_name || '-'}</td>
                       <td><strong>{item.asset_name}</strong></td>
@@ -723,6 +1343,23 @@ export default function DataCatalogPage() {
                       </td>
                       <td>{item.sample_size !== null && item.sample_size !== undefined ? Number(item.sample_size).toLocaleString() : '-'}</td>
                       <td>{item.execution_duration_ms != null ? `${item.execution_duration_ms} ms` : '-'}</td>
+                      <td>
+                        <button
+                          type="button"
+                          className="catalog-history-view-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewHistoryItem(item.result_id);
+                          }}
+                          title="View insights, visualizations, and verified column profiles"
+                        >
+                          <span>View Result</span>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                          </svg>
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

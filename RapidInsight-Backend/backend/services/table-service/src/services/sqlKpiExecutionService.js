@@ -316,6 +316,34 @@ function shapeDashboardResult(item, rows, index) {
     const shape = deriveChartShape(rows, columns);
 
     if (shape && (item.chart_type || rows.length > 1)) {
+      let measureLabel = prettifyColumnName(shape.valueColumn);
+      let groupLabel = prettifyColumnName(shape.labelColumn);
+
+      const isGenericGroup = !groupLabel || /^(label|category|group|dimension|x)$/i.test(groupLabel);
+      const isGenericMeasure = !measureLabel || /^(value|metric|val|measure|y)$/i.test(measureLabel);
+
+      if ((isGenericGroup || isGenericMeasure) && (item.label || item.request)) {
+        const text = (item.label || item.request || '').trim();
+        const splitMatch = text.match(/^(.+?)\s+(?:by|per|across|vs|for each)\s+(.+)$/i);
+        if (splitMatch) {
+          const part1 = prettifyColumnName(splitMatch[1].trim());
+          const part2 = prettifyColumnName(splitMatch[2].trim());
+          const measureKeywords = /\b(count|sum|avg|average|total|number|rate|ratio|percentage|percent|margin|amount|performance|score|revenue|sales|profit|price|cost|growth|index|stat|statistics|metric|value)\b/i;
+          const dimensionKeywords = /\b(name|district|city|state|country|region|college|school|category|type|status|dept|department|group|year|month|date|day|quarter|code|gender|id|class)\b/i;
+
+          if (measureKeywords.test(part1) && !measureKeywords.test(part2)) {
+            if (isGenericMeasure) measureLabel = part1;
+            if (isGenericGroup) groupLabel = part2;
+          } else if (dimensionKeywords.test(part1) || measureKeywords.test(part2)) {
+            if (isGenericGroup) groupLabel = part1;
+            if (isGenericMeasure) measureLabel = part2;
+          } else {
+            if (isGenericMeasure) measureLabel = part1;
+            if (isGenericGroup) groupLabel = part2;
+          }
+        }
+      }
+
       return {
         kind: 'chart',
         value: {
@@ -323,8 +351,8 @@ function shapeDashboardResult(item, rows, index) {
           title: item.label,
           description,
           type: item.chart_type || 'bar',
-          measure_label: prettifyColumnName(shape.valueColumn),
-          group_label: prettifyColumnName(shape.labelColumn),
+          measure_label: measureLabel,
+          group_label: groupLabel,
           format: item.format || 'number',
           labels: shape.labels,
           values: shape.values

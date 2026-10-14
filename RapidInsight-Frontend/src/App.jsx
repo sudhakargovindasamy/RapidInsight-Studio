@@ -58,6 +58,10 @@ function App() {
             element={<DataCatalogPage />}
           />
           <Route
+            path="/projects/:projectId/catalog/history/:historyId"
+            element={<DataCatalogPage />}
+          />
+          <Route
             path="/projects/:projectId/tables/:generatedTableId"
             element={<TableViewerPage />}
           />

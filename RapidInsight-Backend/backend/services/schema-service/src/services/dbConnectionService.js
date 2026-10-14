@@ -146,8 +146,22 @@ async function importTablesAsSchemas({
   }
 }
 
+/**
+ * Introspects column definitions for a specific table in a connected database.
+ */
+async function getDatabaseTableColumns(connectionConfig, schema = 'public', table) {
+  const { connector } = resolveConnector(connectionConfig);
+  const client = await connector.createClient(connectionConfig);
+  try {
+    return await connector.introspectTableColumns(client, schema || 'public', table);
+  } finally {
+    await connector.closeClient(client);
+  }
+}
+
 module.exports = {
   parseClientConfig,
   testAndDiscoverTables,
-  importTablesAsSchemas
+  importTablesAsSchemas,
+  getDatabaseTableColumns
 };

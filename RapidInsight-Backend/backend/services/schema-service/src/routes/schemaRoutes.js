@@ -17,6 +17,7 @@ const {
   retrySeedRows,
   getProjectSeedStatus,
   testDatabaseConnection,
+  getDatabaseTableColumnsHandler,
   importDatabaseTables
 } = require('../controllers/schemaController');
 
@@ -25,6 +26,7 @@ const router = express.Router();
 const { registerAsset } = require('../controllers/catalogController');
 
 router.post('/connect-db/test', testDatabaseConnection);
+router.post('/connect-db/table-columns', getDatabaseTableColumnsHandler);
 router.post('/connect-db/import', importDatabaseTables);
 router.post('/register-asset', registerAsset);
 

@@ -3,8 +3,11 @@ import { apiRequest } from './apiClient.js';
 /**
  * Fetch catalog data sources for an authorized project
  */
-export async function getCatalogSources(projectId) {
-  return apiRequest(`/schema/catalog/sources?projectId=${encodeURIComponent(projectId)}`);
+export async function getCatalogSources(projectId, { loadedOnly = true } = {}) {
+  const query = loadedOnly
+    ? `/schema/catalog/sources?projectId=${encodeURIComponent(projectId)}&loadedOnly=true`
+    : `/schema/catalog/sources?projectId=${encodeURIComponent(projectId)}`;
+  return apiRequest(query);
 }
 
 /**
@@ -29,11 +32,12 @@ export async function getCatalogColumns(projectId, assetId) {
 /**
  * Run a profile statistic query against the physical table of a verified catalog column
  */
-export async function runProfileStat({ projectId, columnId, statistic }) {
+export async function runProfileStat({ projectId, assetId, columnId, statistic }) {
   return apiRequest('/schema/catalog/profile-stat', {
     method: 'POST',
     body: JSON.stringify({
       projectId,
+      assetId,
       columnId,
       statistic
     })
@@ -45,5 +49,62 @@ export async function runProfileStat({ projectId, columnId, statistic }) {
  */
 export async function getProfilingHistory(projectId) {
   return apiRequest(`/schema/catalog/profiling-history?projectId=${encodeURIComponent(projectId)}`);
+}
+
+/**
+ * Fetch a single historical profiling run with complete insights, visualizations, and column profiles
+ */
+export async function getProfilingHistoryItem(projectId, resultId) {
+  return apiRequest(
+    `/schema/catalog/profiling-history/${encodeURIComponent(resultId)}?projectId=${encodeURIComponent(projectId)}`
+  );
+}
+
+/**
+ * Method A: Ingests an uploaded data file (CSV, XLSX, XLS, JSON, YAML) into the asset's physical table.
+ */
+export async function ingestFileIntoAsset({ projectId, assetId, file }) {
+  const formData = new FormData();
+  formData.append('projectId', projectId);
+  formData.append('file', file);
+  return apiRequest(`/schema/catalog/assets/${encodeURIComponent(assetId)}/ingest-file`, {
+    method: 'POST',
+    body: formData
+  });
+}
+
+/**
+ * Method B: Generates synthetic mock records matching asset column specs and loads into destination table.
+ */
+export async function ingestMockDataIntoAsset({ projectId, assetId, rowCount = 100 }) {
+  return apiRequest(`/schema/catalog/assets/${encodeURIComponent(assetId)}/ingest-mock`, {
+    method: 'POST',
+    body: JSON.stringify({ projectId, rowCount })
+  });
+}
+
+/**
+ * Method C: Imports rows from an external connected database table into the asset's destination table with column mapping.
+ */
+export async function ingestDatabaseIntoAsset({
+  projectId,
+  assetId,
+  connectionConfig,
+  sourceSchema = 'public',
+  sourceTable,
+  columnMapping = {},
+  limit = 500
+}) {
+  return apiRequest(`/schema/catalog/assets/${encodeURIComponent(assetId)}/ingest-database`, {
+    method: 'POST',
+    body: JSON.stringify({
+      projectId,
+      connectionConfig,
+      sourceSchema,
+      sourceTable,
+      columnMapping,
+      limit
+    })
+  });
 }
 

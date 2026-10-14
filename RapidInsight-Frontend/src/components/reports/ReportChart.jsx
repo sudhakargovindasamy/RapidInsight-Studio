@@ -81,12 +81,72 @@ function formatChartValue(value, format) {
   }).format(numericValue);
 }
 
+function formatTitleWords(str) {
+  if (!str) return '';
+  return str
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function resolveChartAxisLabels(item) {
+  let group = (item.group_label || '').trim();
+  let measure = (item.measure_label || '').trim();
+
+  const isGenericGroup = !group || /^(label|category|group|dimension|x)$/i.test(group);
+  const isGenericMeasure = !measure || /^(value|metric|val|measure|y)$/i.test(measure);
+
+  if (isGenericGroup || isGenericMeasure) {
+    const rawTitle = (item.title || item.request || item.label || '').trim();
+    const splitMatch = rawTitle.match(/^(.+?)\s+(?:by|per|across|vs|for each)\s+(.+)$/i);
+    if (splitMatch) {
+      const part1 = formatTitleWords(splitMatch[1]);
+      const part2 = formatTitleWords(splitMatch[2]);
+
+      const measureKeywords = /\b(count|sum|avg|average|total|number|rate|ratio|percentage|percent|margin|amount|performance|score|revenue|sales|profit|price|cost|growth|index|stat|statistics|metric|value)\b/i;
+      const dimensionKeywords = /\b(name|district|city|state|country|region|college|school|category|type|status|dept|department|group|year|month|date|day|quarter|code|gender|id|class)\b/i;
+
+      let candidateGroup = '';
+      let candidateMeasure = '';
+
+      if (measureKeywords.test(part1) && !measureKeywords.test(part2)) {
+        candidateMeasure = part1;
+        candidateGroup = part2;
+      } else if (dimensionKeywords.test(part1) && !dimensionKeywords.test(part2)) {
+        candidateGroup = part1;
+        candidateMeasure = part2;
+      } else if (measureKeywords.test(part2) && !measureKeywords.test(part1)) {
+        candidateGroup = part1;
+        candidateMeasure = part2;
+      } else {
+        candidateMeasure = part1;
+        candidateGroup = part2;
+      }
+
+      if (isGenericGroup && candidateGroup) group = candidateGroup;
+      if (isGenericMeasure && candidateMeasure) measure = candidateMeasure;
+    } else if (rawTitle) {
+      if (isGenericMeasure && !isGenericGroup) measure = formatTitleWords(rawTitle);
+      else if (isGenericGroup && !isGenericMeasure) group = formatTitleWords(rawTitle);
+      else if (isGenericGroup && isGenericMeasure) {
+        measure = formatTitleWords(rawTitle);
+        group = 'Category';
+      }
+    }
+  }
+
+  if (!group || /^(label|x)$/i.test(group)) group = 'Category';
+  if (!measure || /^(value|y)$/i.test(measure)) measure = 'Value';
+
+  return { groupLabel: group, measureLabel: measure };
+}
+
 export default function ReportChart({ item }) {
   const ChartComponent = selectChart(item.type);
   const labels = Array.isArray(item.labels) ? item.labels : [];
   const values = Array.isArray(item.values) ? item.values : [];
-  const measureLabel = item.measure_label || item.title || 'Value';
-  const groupLabel = item.group_label || '';
+  const { groupLabel, measureLabel } = resolveChartAxisLabels(item);
   const heading = item.title || measureLabel;
   const isCircular = item.type === 'pie' || item.type === 'doughnut';
   const primary = cssVariable('--schema-primary', '#8b73dc');

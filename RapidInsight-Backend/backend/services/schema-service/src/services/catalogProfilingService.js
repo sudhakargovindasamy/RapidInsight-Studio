@@ -3,6 +3,7 @@ const logger = require('../config/logger');
 const AppError = require('../errors/AppError');
 const { createSupabaseClient } = require('../config/supabase');
 const { registerCatalogMetadata } = require('./catalogIngestionService');
+const { profileAssetData } = require('./sqlDataProfilingService');
 
 const NUMERIC_DATA_TYPES = new Set([
   'number',
@@ -147,28 +148,61 @@ async function syncProjectSchemasToCatalog({ project = null, projectId = null, u
 /**
  * List catalog sources for an authorized project
  */
-async function listCatalogSources({ projectId, project = null, userId = null, supabase = null }) {
+async function listCatalogSources({ projectId, project = null, userId = null, supabase = null, loadedOnly = false }) {
   await syncProjectSchemasToCatalog({ project, projectId, userId, supabase });
 
-  const query = `
-    SELECT 
-      source_id,
-      project_id,
-      organisation_id,
-      source_name,
-      source_type,
-      environment,
-      host,
-      port,
-      database_name,
-      auth_type,
-      status,
-      created_at,
-      updated_at
-    FROM public.data_source
-    WHERE project_id = $1 AND status = 'ACTIVE'
-    ORDER BY created_at ASC;
-  `;
+  let query;
+  if (loadedOnly) {
+    query = `
+      SELECT DISTINCT
+        ds.source_id,
+        ds.project_id,
+        ds.organisation_id,
+        ds.source_name,
+        ds.source_type,
+        ds.environment,
+        ds.host,
+        ds.port,
+        ds.database_name,
+        ds.auth_type,
+        ds.status,
+        ds.created_at,
+        ds.updated_at
+      FROM public.data_source ds
+      JOIN public.catalog_asset ca ON ca.source_id = ds.source_id
+      LEFT JOIN public.generated_tables gt 
+        ON (gt.id = ca.generated_table_id OR (ca.generated_table_id IS NULL AND gt.schema_id = ca.schema_id))
+      LEFT JOIN public.schemas s ON s.id = ca.schema_id
+      WHERE ds.project_id = $1 
+        AND ds.status = 'ACTIVE'
+        AND ca.status = 'ACTIVE'
+        AND (
+          (gt.status = 'POPULATED' AND COALESCE(gt.row_count, 0) > 0)
+          OR (COALESCE(s.uploaded_row_count, 0) > 0)
+        )
+      ORDER BY ds.created_at ASC;
+    `;
+  } else {
+    query = `
+      SELECT 
+        source_id,
+        project_id,
+        organisation_id,
+        source_name,
+        source_type,
+        environment,
+        host,
+        port,
+        database_name,
+        auth_type,
+        status,
+        created_at,
+        updated_at
+      FROM public.data_source
+      WHERE project_id = $1 AND status = 'ACTIVE'
+      ORDER BY created_at ASC;
+    `;
+  }
   const result = await pool.query(query, [projectId]);
   return result.rows;
 }
@@ -354,7 +388,22 @@ async function runProfileStatistic({ projectId, columnId, statistic, userId = nu
       }
     }
 
-    // Persist profiling run result to database
+    let fullProfile = null;
+    try {
+      fullProfile = await profileAssetData({
+        projectId,
+        assetId: meta.asset_id,
+        columnId: meta.column_id,
+        targetColumnName: meta.column_name,
+        statistic,
+        targetResultValue: finalValue,
+        dbClient: client
+      });
+    } catch (profileErr) {
+      logger.warn({ profileErr: profileErr.message }, 'Failed to compute full asset profile along with statistic');
+    }
+
+    // Persist profiling run result to database (including profile_data)
     let savedRecord = null;
     const authorUserId = userId || meta.asset_created_by;
     if (authorUserId) {
@@ -364,8 +413,8 @@ async function runProfileStatistic({ projectId, columnId, statistic, userId = nu
             project_id, user_id, source_id, source_name,
             asset_id, asset_name, column_id, column_name,
             data_type, statistic, result_value, sample_size,
-            execution_duration_ms, created_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, now())
+            execution_duration_ms, profile_data, created_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, now())
           RETURNING result_id, created_at;
         `;
         const insertRes = await client.query(insertSql, [
@@ -381,11 +430,41 @@ async function runProfileStatistic({ projectId, columnId, statistic, userId = nu
           statistic,
           finalValue,
           Number(row.sample_size || 0),
-          durationMs
+          durationMs,
+          fullProfile ? JSON.stringify(fullProfile) : null
         ]);
         savedRecord = insertRes.rows[0];
       } catch (insertErr) {
-        logger.warn({ insertErr }, 'Failed to persist profiling result row to database');
+        // Fallback without profile_data column if necessary
+        try {
+          const fallbackSql = `
+            INSERT INTO public.catalog_profiling_result (
+              project_id, user_id, source_id, source_name,
+              asset_id, asset_name, column_id, column_name,
+              data_type, statistic, result_value, sample_size,
+              execution_duration_ms, created_at
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, now())
+            RETURNING result_id, created_at;
+          `;
+          const fallbackRes = await client.query(fallbackSql, [
+            projectId,
+            authorUserId,
+            meta.source_id || null,
+            meta.source_name || 'Uploaded Schema Files',
+            meta.asset_id || null,
+            meta.asset_name,
+            meta.column_id || null,
+            meta.column_name,
+            meta.data_type,
+            statistic,
+            finalValue,
+            Number(row.sample_size || 0),
+            durationMs
+          ]);
+          savedRecord = fallbackRes.rows[0];
+        } catch (fallbackErr) {
+          logger.warn({ fallbackErr }, 'Failed to persist profiling result row to database');
+        }
       }
     }
 
@@ -399,7 +478,20 @@ async function runProfileStatistic({ projectId, columnId, statistic, userId = nu
       result: finalValue,
       sampleSize: Number(row.sample_size || 0),
       executionDurationMs: durationMs,
-      createdAt: savedRecord?.created_at ? new Date(savedRecord.created_at).toISOString() : new Date().toISOString()
+      createdAt: savedRecord?.created_at ? new Date(savedRecord.created_at).toISOString() : new Date().toISOString(),
+      // Automated insights and visualizations without AI
+      assetProfile: fullProfile,
+      summary: fullProfile?.summary || null,
+      columnProfiles: fullProfile?.columnProfiles || [],
+      isPopulated: true,
+      totalRows: fullProfile?.totalRows ?? Number(row.sample_size || 0),
+      totalColumns: fullProfile?.totalColumns ?? 1,
+      tableQuality: fullProfile?.tableQuality || null,
+      numericSummaries: fullProfile?.numericSummaries || [],
+      categoricalSummaries: fullProfile?.categoricalSummaries || [],
+      dateSummaries: fullProfile?.dateSummaries || [],
+      insights: fullProfile?.insights || [],
+      charts: fullProfile?.charts || []
     };
   } catch (err) {
     logger.error({ err, columnId, statistic }, 'Failed to execute catalog profiling query');
@@ -471,12 +563,126 @@ async function listProfilingHistory({ projectId, dbClient = null }) {
   }));
 }
 
+/**
+ * Retrieve a specific profiling history run with its complete profile, insights, and charts
+ */
+async function getProfilingHistoryItem({ projectId, resultId, dbClient = null }) {
+  const client = dbClient || pool;
+  const query = `
+    SELECT
+      cpr.result_id,
+      cpr.project_id,
+      cpr.user_id,
+      cpr.source_id,
+      cpr.source_name,
+      cpr.asset_id,
+      cpr.asset_name,
+      cpr.column_id,
+      cpr.column_name,
+      cpr.data_type,
+      cpr.statistic,
+      cpr.result_value,
+      cpr.sample_size,
+      cpr.execution_duration_ms,
+      cpr.profile_data,
+      cpr.created_at
+    FROM public.catalog_profiling_result cpr
+    WHERE cpr.result_id = $1 AND cpr.project_id = $2;
+  `;
+  const result = await client.query(query, [resultId, projectId]);
+
+  if (!result.rows.length) {
+    throw new AppError('Profiling history item not found.', 404, 'HISTORY_ITEM_NOT_FOUND');
+  }
+
+  const row = result.rows[0];
+  let fullProfile = row.profile_data;
+  if (typeof fullProfile === 'string') {
+    try {
+      fullProfile = JSON.parse(fullProfile);
+    } catch {
+      fullProfile = null;
+    }
+  }
+
+  // If profile_data is not stored (or an older run), generate on the fly
+  if (!fullProfile && row.asset_id) {
+    try {
+      fullProfile = await profileAssetData({
+        projectId: row.project_id,
+        assetId: row.asset_id,
+        columnId: row.column_id,
+        targetColumnName: row.column_name,
+        statistic: row.statistic,
+        targetResultValue: row.result_value !== null ? Number(row.result_value) : null,
+        dbClient: client
+      });
+      if (fullProfile) {
+        client.query(
+          'UPDATE public.catalog_profiling_result SET profile_data = $1 WHERE result_id = $2',
+          [JSON.stringify(fullProfile), row.result_id]
+        ).catch(() => {});
+      }
+    } catch (calcErr) {
+      logger.warn({ calcErr: calcErr.message }, 'Failed to compute profile on-the-fly for history item');
+    }
+  }
+
+  return {
+    resultId: row.result_id,
+    result_id: row.result_id,
+    projectId: row.project_id,
+    project_id: row.project_id,
+    userId: row.user_id,
+    user_id: row.user_id,
+    sourceId: row.source_id,
+    source_id: row.source_id,
+    sourceName: row.source_name || 'Uploaded Schema Files',
+    source_name: row.source_name || 'Uploaded Schema Files',
+    assetId: row.asset_id,
+    asset_id: row.asset_id,
+    assetName: row.asset_name,
+    asset_name: row.asset_name,
+    columnId: row.column_id,
+    column_id: row.column_id,
+    columnName: row.column_name,
+    column_name: row.column_name,
+    dataType: row.data_type,
+    data_type: row.data_type,
+    statistic: row.statistic,
+    result: row.result_value !== null ? Number(row.result_value) : null,
+    result_value: row.result_value !== null ? Number(row.result_value) : null,
+    sampleSize: Number(row.sample_size || 0),
+    sample_size: Number(row.sample_size || 0),
+    executionDurationMs: row.execution_duration_ms,
+    execution_duration_ms: row.execution_duration_ms,
+    createdAt: row.created_at ? new Date(row.created_at).toISOString() : null,
+    created_at: row.created_at ? new Date(row.created_at).toISOString() : null,
+    isHistorical: true,
+    // Automated insights and visualizations
+    assetProfile: fullProfile,
+    summary: fullProfile?.summary || null,
+    columnProfiles: fullProfile?.columnProfiles || [],
+    isPopulated: true,
+    totalRows: fullProfile?.totalRows ?? Number(row.sample_size || 0),
+    totalColumns: fullProfile?.totalColumns ?? 1,
+    tableQuality: fullProfile?.tableQuality || null,
+    numericSummaries: fullProfile?.numericSummaries || [],
+    categoricalSummaries: fullProfile?.categoricalSummaries || [],
+    dateSummaries: fullProfile?.dateSummaries || [],
+    insights: fullProfile?.insights || [],
+    charts: fullProfile?.charts || []
+  };
+}
+
 module.exports = {
   syncProjectSchemasToCatalog,
   listCatalogSources,
   listCatalogAssets,
   listCatalogColumns,
   runProfileStatistic,
-  listProfilingHistory
+  profileAssetData,
+  listProfilingHistory,
+  getProfilingHistoryItem
 };
 

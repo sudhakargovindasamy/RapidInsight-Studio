@@ -4,6 +4,8 @@ const AppError = require('../errors/AppError');
 const logger = require('../config/logger');
 const { registerCatalogMetadata } = require('./catalogIngestionService');
 const { normalizeIdentifier } = require('../utils/identifierNaming');
+const { createSupabaseAdminClient } = require('../config/supabase');
+const { uploadSchemaDefinition } = require('./schemaStorageService');
 
 /**
  * Registers asset metadata into the Asset Registry / Data Catalog without storing business data rows.
@@ -114,6 +116,8 @@ async function registerAssetMetadata({ project, userId, payload }) {
     const physicalSchemaName = project.physical_schema_name || 'public';
     const physicalTableName = assetName;
 
+    const storagePath = `metadata/${userId}/${project.id}/${schemaId}.json`;
+
     if (isUpdate) {
       await client.query(
         `UPDATE public.schemas
@@ -128,7 +132,6 @@ async function registerAssetMetadata({ project, userId, payload }) {
         [normalizedColumns.length, fileSize, sheetName, fileType, schemaId]
       );
     } else {
-      const storagePath = `metadata/${userId}/${project.id}/${schemaId}.json`;
       await client.query(
         `INSERT INTO public.schemas (
           id, user_id, project_id, original_file_name, display_name,
@@ -185,6 +188,25 @@ async function registerAssetMetadata({ project, userId, payload }) {
     });
 
     await client.query('COMMIT');
+
+    // Upload schema definition JSON to storage so that downstream table generation & profiling can read it
+    const finalStoragePath = isUpdate ? `metadata/${userId}/${project.id}/${schemaId}.json` : storagePath;
+    const adminSupabase = createSupabaseAdminClient();
+    const schemaDef = {
+      fields: normalizedColumns.map(col => ({
+        name: col.name,
+        type: col.type,
+        primaryKey: col.isPk,
+        notNull: !col.isNullable,
+        unique: col.isPk
+      }))
+    };
+    uploadSchemaDefinition({
+      supabase: adminSupabase,
+      bucket: 'schemas',
+      path: finalStoragePath,
+      schemaDefinition: schemaDef
+    }).catch(err => logger.warn({ err: err.message }, 'Schema definition storage upload skipped'));
 
     logger.info(
       { projectId: project.id, assetName, assetId: catalogResult.assetId, columnCount: normalizedColumns.length },

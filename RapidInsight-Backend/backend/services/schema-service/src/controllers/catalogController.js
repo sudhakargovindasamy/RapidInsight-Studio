@@ -8,7 +8,9 @@ const {
   listCatalogAssets,
   listCatalogColumns,
   runProfileStatistic,
-  listProfilingHistory
+  profileAssetData,
+  listProfilingHistory,
+  getProfilingHistoryItem
 } = require('../services/catalogProfilingService');
 
 function getSupabase(req) {
@@ -24,7 +26,8 @@ async function getSources(req, res, next) {
     // Enforce project authorization
     const project = await getProjectForEmployee({ supabase, projectId, userId: req.user?.id });
 
-    const sources = await listCatalogSources({ projectId, project, userId: req.user?.id, supabase });
+    const loadedOnly = req.query.loadedOnly === 'true' || req.query.loadedOnly === true || req.query.loaded_only === 'true';
+    const sources = await listCatalogSources({ projectId, project, userId: req.user?.id, supabase, loadedOnly });
     return res.status(200).json({
       success: true,
       count: sources.length,
@@ -83,6 +86,7 @@ async function getColumns(req, res, next) {
 async function profileStat(req, res, next) {
   try {
     const projectId = req.body.projectId || req.body.project_id;
+    const assetId = req.body.assetId || req.body.asset_id;
     const columnId = req.body.columnId || req.body.column_id;
     const statistic = req.body.statistic;
     const supabase = getSupabase(req);
@@ -90,12 +94,23 @@ async function profileStat(req, res, next) {
     // Enforce project authorization
     await getProjectForEmployee({ supabase, projectId, userId: req.user?.id });
 
-    const result = await runProfileStatistic({
-      projectId,
-      columnId,
-      statistic,
-      userId: req.user?.id
-    });
+    let result;
+    if (columnId && statistic) {
+      result = await runProfileStatistic({
+        projectId,
+        columnId,
+        statistic,
+        userId: req.user?.id
+      });
+    } else if (assetId) {
+      result = await profileAssetData({
+        projectId,
+        assetId,
+        userId: req.user?.id
+      });
+    } else {
+      throw new AppError('Either assetId or columnId and statistic must be provided.', 400, 'PARAM_REQUIRED');
+    }
 
     return res.status(200).json({
       success: true,
@@ -127,7 +142,39 @@ async function getProfilingHistory(req, res, next) {
   }
 }
 
+async function getProfilingHistoryItemHandler(req, res, next) {
+  try {
+    const { resultId } = req.params;
+    const projectId = req.query.projectId || req.query.project_id;
+    const supabase = getSupabase(req);
+
+    if (!projectId) {
+      throw new AppError('projectId query parameter is required.', 400, 'PARAM_REQUIRED');
+    }
+    if (!resultId) {
+      throw new AppError('resultId parameter is required.', 400, 'PARAM_REQUIRED');
+    }
+
+    // Enforce project authorization
+    await getProjectForEmployee({ supabase, projectId, userId: req.user?.id });
+
+    const item = await getProfilingHistoryItem({ projectId, resultId });
+    return res.status(200).json({
+      success: true,
+      data: item,
+      requestId: req.id
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
 const { registerAssetMetadata } = require('../services/assetRegistrationService');
+const {
+  ingestFileIntoAsset,
+  ingestMockDataIntoAsset,
+  ingestDatabaseIntoAsset
+} = require('../services/assetIngestionService');
 
 async function registerAsset(req, res, next) {
   try {
@@ -152,12 +199,104 @@ async function registerAsset(req, res, next) {
   }
 }
 
+async function ingestFileHandler(req, res, next) {
+  try {
+    const supabase = getSupabase(req);
+    const projectId = req.body.projectId || req.query.projectId;
+    const assetId = req.params.assetId;
+
+    if (!req.file) {
+      throw new AppError('A valid data file is required for ingestion.', 400, 'FILE_REQUIRED');
+    }
+
+    const project = await getProjectForEmployee({ supabase, projectId, userId: req.user?.id });
+
+    const result = await ingestFileIntoAsset({
+      project,
+      userId: req.user?.id,
+      assetId,
+      fileBuffer: req.file.buffer,
+      originalFileName: req.file.originalname
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+      message: result.message,
+      requestId: req.id
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+async function ingestMockHandler(req, res, next) {
+  try {
+    const supabase = getSupabase(req);
+    const projectId = req.body.projectId;
+    const assetId = req.params.assetId;
+    const rowCount = req.body.rowCount || 100;
+
+    const project = await getProjectForEmployee({ supabase, projectId, userId: req.user?.id });
+
+    const result = await ingestMockDataIntoAsset({
+      project,
+      userId: req.user?.id,
+      assetId,
+      rowCount
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+      message: result.message,
+      requestId: req.id
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+async function ingestDatabaseHandler(req, res, next) {
+  try {
+    const supabase = getSupabase(req);
+    const { projectId, connectionConfig, sourceSchema, sourceTable, columnMapping, limit } = req.body;
+    const assetId = req.params.assetId;
+
+    const project = await getProjectForEmployee({ supabase, projectId, userId: req.user?.id });
+
+    const result = await ingestDatabaseIntoAsset({
+      project,
+      userId: req.user?.id,
+      assetId,
+      connectionConfig,
+      sourceSchema: sourceSchema || 'public',
+      sourceTable,
+      columnMapping: columnMapping || {},
+      limit: limit || 500
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+      message: result.message,
+      requestId: req.id
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
 module.exports = {
   getSources,
   getAssets,
   getColumns,
   profileStat,
   getProfilingHistory,
-  registerAsset
+  getProfilingHistoryItemHandler,
+  registerAsset,
+  ingestFileHandler,
+  ingestMockHandler,
+  ingestDatabaseHandler
 };
 

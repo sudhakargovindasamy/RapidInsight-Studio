@@ -61,3 +61,10 @@ export async function registerAssetMetadata(payload) {
     body: JSON.stringify(payload)
   });
 }
+
+export async function getDatabaseTableColumns(payload) {
+  return apiRequest('/schema/connect-db/table-columns', {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  });
+}
