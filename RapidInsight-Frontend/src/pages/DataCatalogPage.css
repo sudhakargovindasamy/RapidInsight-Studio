@@ -275,6 +275,25 @@
   cursor: not-allowed;
 }
 
+.catalog-select--invalid {
+  border-color: var(--schema-danger, #ef4444) !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25) !important;
+}
+
+.catalog-validation-msg {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--schema-danger, #ef4444);
+  font-size: 13.5px;
+  font-weight: 600;
+  background: var(--schema-danger-soft, rgba(239, 68, 68, 0.1));
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--schema-danger, #ef4444);
+  margin-right: auto;
+}
+
 /* Warnings and Notices */
 .catalog-banner-warning {
   display: flex;

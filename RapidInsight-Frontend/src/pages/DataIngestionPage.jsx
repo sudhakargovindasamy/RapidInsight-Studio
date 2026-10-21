@@ -255,6 +255,9 @@ export default function DataIngestionPage() {
   const [assetColumns, setAssetColumns] = useState([]);
   const [loadingAssets, setLoadingAssets] = useState(false);
   const [loadingColumns, setLoadingColumns] = useState(false);
+  const [assetFilter, setAssetFilter] = useState('all'); // 'all' | 'remaining' | 'loaded'
+  const [assetSearchTerm, setAssetSearchTerm] = useState('');
+  const step2Ref = useRef(null);
 
   // ── Step 3: Loading Method State ('file' | 'mock' | 'database') ─
   const [activeMethod, setActiveMethod] = useState('file');
@@ -322,6 +325,13 @@ export default function DataIngestionPage() {
   }, [selectedProjectId]);
 
   // Handle Project Switch
+  function handleSelectAssetForIngestion(assetId) {
+    setSelectedAssetId(assetId);
+    if (step2Ref.current) {
+      step2Ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
   function handleProjectChange(newProjectId) {
     if (newProjectId === selectedProjectId) return;
     setSelectedProjectId(newProjectId);
@@ -803,7 +813,7 @@ export default function DataIngestionPage() {
         </div>
 
         {/* ── STEP 2: Select Asset ─────────────────────────────── */}
-        <div className="ingestion-card">
+        <div className="ingestion-card" ref={step2Ref}>
           <div className="ingestion-card-header">
             <span className="ingestion-step-number">2</span>
             <div>
@@ -1416,6 +1426,192 @@ export default function DataIngestionPage() {
           <p>Please select an asset from the project to configure its data ingestion method.</p>
         </div>
       )}
+
+      {/* ── Project Files Ingestion Status Tracker ─────────────── */}
+      <section className="project-ingestion-tracker-section" id="project-ingestion-tracker">
+        <div className="tracker-header-row">
+          <div className="tracker-title-area">
+            <h2>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+                <polyline points="10 9 9 9 8 9" />
+              </svg>
+              <span>Project Files & Ingestion Status</span>
+            </h2>
+            <p>
+              Overview of all registered files/assets in <strong>{currentProject?.name || 'this project'}</strong>, highlighting which files have business records loaded and which are remaining.
+            </p>
+          </div>
+        </div>
+
+        {/* 3 Metric Cards */}
+        <div className="tracker-stat-cards">
+          <div className="tracker-stat-card">
+            <div className="tracker-stat-label-row">
+              <span className="tracker-stat-label">Total Registered Files</span>
+            </div>
+            <span className="tracker-stat-num">{assets.length}</span>
+          </div>
+
+          <div className="tracker-stat-card tracker-stat-card--remaining">
+            <div className="tracker-stat-label-row">
+              <span className="tracker-stat-label">Remaining to Load</span>
+              <span className="tracker-stat-badge tracker-stat-badge--remaining">Needs Ingestion</span>
+            </div>
+            <span className="tracker-stat-num">{assets.filter(a => !a.is_populated).length}</span>
+          </div>
+
+          <div className="tracker-stat-card tracker-stat-card--loaded">
+            <div className="tracker-stat-label-row">
+              <span className="tracker-stat-label">Data Loaded</span>
+              <span className="tracker-stat-badge tracker-stat-badge--loaded">Populated</span>
+            </div>
+            <span className="tracker-stat-num">{assets.filter(a => a.is_populated).length}</span>
+          </div>
+        </div>
+
+        {/* Controls: Tabs & Search */}
+        <div className="tracker-controls-bar">
+          <div className="tracker-tabs">
+            <button
+              type="button"
+              className={`tracker-tab-btn ${assetFilter === 'all' ? 'tracker-tab-btn--active' : ''}`}
+              onClick={() => setAssetFilter('all')}
+            >
+              All Files ({assets.length})
+            </button>
+            <button
+              type="button"
+              className={`tracker-tab-btn ${assetFilter === 'remaining' ? 'tracker-tab-btn--active' : ''}`}
+              onClick={() => setAssetFilter('remaining')}
+            >
+              Remaining / Not Loaded ({assets.filter(a => !a.is_populated).length})
+            </button>
+            <button
+              type="button"
+              className={`tracker-tab-btn ${assetFilter === 'loaded' ? 'tracker-tab-btn--active' : ''}`}
+              onClick={() => setAssetFilter('loaded')}
+            >
+              Data Loaded ({assets.filter(a => a.is_populated).length})
+            </button>
+          </div>
+
+          <input
+            type="text"
+            className="tracker-search-input"
+            placeholder="Search by asset or file name..."
+            value={assetSearchTerm}
+            onChange={(e) => setAssetSearchTerm(e.target.value)}
+          />
+        </div>
+
+        {/* Table of Assets */}
+        <div className="tracker-table-container">
+          <table className="tracker-table">
+            <thead>
+              <tr>
+                <th>Asset Name</th>
+                <th>Source File</th>
+                <th>Columns</th>
+                <th>Ingestion Status</th>
+                <th>Row Count</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(() => {
+                const filtered = assets.filter((asset) => {
+                  if (assetFilter === 'remaining' && asset.is_populated) return false;
+                  if (assetFilter === 'loaded' && !asset.is_populated) return false;
+                  if (!assetSearchTerm) return true;
+                  const q = assetSearchTerm.toLowerCase();
+                  const name = (asset.asset_name || '').toLowerCase();
+                  const src = (asset.source_name || asset.fq_name || '').toLowerCase();
+                  return name.includes(q) || src.includes(q);
+                });
+
+                if (filtered.length === 0) {
+                  return (
+                    <tr>
+                      <td colSpan="6" className="tracker-table-empty">
+                        {assets.length === 0
+                          ? 'No registered files or assets found for this project. Register files in Asset Registry first.'
+                          : 'No files match the chosen filter.'}
+                      </td>
+                    </tr>
+                  );
+                }
+
+                return filtered.map((asset) => {
+                  const isSelected = asset.asset_id === selectedAssetId;
+                  return (
+                    <tr key={asset.asset_id} style={isSelected ? { background: 'rgba(99, 102, 241, 0.08)' } : undefined}>
+                      <td>
+                        <strong>{asset.asset_name}</strong>
+                        {isSelected && <span style={{ marginLeft: '8px', fontSize: '11px', color: '#6366f1', fontWeight: '700' }}>[Selected]</span>}
+                      </td>
+                      <td>{asset.source_name || asset.fq_name || '—'}</td>
+                      <td>{asset.column_count != null ? `${asset.column_count} cols` : '—'}</td>
+                      <td>
+                        {asset.is_populated ? (
+                          <span className="status-pill status-pill--uploaded">
+                            <span className="status-dot"></span>
+                            Data Loaded
+                          </span>
+                        ) : (
+                          <span className="status-pill status-pill--pending">
+                            <span className="status-dot"></span>
+                            Remaining (Not Loaded)
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        {asset.is_populated ? (
+                          <strong>{Number(asset.row_count || 0).toLocaleString()} rows</strong>
+                        ) : (
+                          <span style={{ color: 'var(--text-secondary)' }}>0 rows</span>
+                        )}
+                      </td>
+                      <td>
+                        {!asset.is_populated ? (
+                          <button
+                            type="button"
+                            className="primary-button small-btn"
+                            onClick={() => handleSelectAssetForIngestion(asset.asset_id)}
+                          >
+                            Load Data →
+                          </button>
+                        ) : (
+                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <button
+                              type="button"
+                              className="secondary-button small-btn"
+                              onClick={() => handleSelectAssetForIngestion(asset.asset_id)}
+                            >
+                              Reload Data
+                            </button>
+                            {asset.generated_table_id && (
+                              <Link
+                                to={`/projects/${selectedProjectId}/tables/${asset.generated_table_id}`}
+                                className="view-table-link"
+                              >
+                                View Table →
+                              </Link>
+                            )}
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                });
+              })()}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       {/* ── Summary & Status Dashboard Bar ──────────────────────── */}
       <footer className="ingestion-summary-panel">

@@ -15,6 +15,9 @@ import {
 import { Bar, Line } from 'react-chartjs-2';
 
 import {
+  getProjectById
+} from '../api/projectApi.js';
+import {
   getCatalogSources,
   getCatalogAssets,
   getCatalogColumns,
@@ -590,8 +593,10 @@ export default function DataCatalogPage() {
   const [initialLoading, setInitialLoading] = useState(true);
 
   // Data selections
-  const [sources, setSources] = useState([]);
-  const [selectedSourceId, setSelectedSourceId] = useState('');
+  const [project, setProject] = useState(null);
+  const [loadingProject, setLoadingProject] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState(projectId || '');
+  const [validationError, setValidationError] = useState('');
   
   const [assets, setAssets] = useState([]);
   const [selectedAssetId, setSelectedAssetId] = useState('');
@@ -602,7 +607,6 @@ export default function DataCatalogPage() {
   const [selectedStatistic, setSelectedStatistic] = useState('');
 
   // Loading & error states
-  const [loadingSources, setLoadingSources] = useState(false);
   const [loadingAssets, setLoadingAssets] = useState(false);
   const [loadingColumns, setLoadingColumns] = useState(false);
   const [runningQuery, setRunningQuery] = useState(false);
@@ -672,89 +676,93 @@ export default function DataCatalogPage() {
     setHistoryItemError('');
   };
 
-  // 1. Fetch sources and existing catalog data on mount or project switch
+  // Sync selectedProjectId when route projectId changes
+  useEffect(() => {
+    if (projectId) {
+      setSelectedProjectId(projectId);
+    }
+  }, [projectId]);
+
+  // 1. Fetch active project details and catalog assets on mount or project switch
   const loadCatalogData = useCallback(async () => {
     if (!projectId) return;
     try {
       setInitialLoading(true);
-      setLoadingSources(true);
+      setLoadingProject(true);
+      setLoadingAssets(true);
       setError('');
+      setValidationError('');
 
-      const res = await getCatalogSources(projectId, { loadedOnly: true });
-      const items = res?.data || res || [];
-      const sourcesList = Array.isArray(items) ? items : [];
-      setSources(sourcesList);
+      // Fetch active project and catalog assets in parallel
+      const [projRes, assetsRes] = await Promise.allSettled([
+        getProjectById(projectId),
+        getCatalogAssets(projectId)
+      ]);
 
-      if (sourcesList.length > 0) {
-        setIsBuilderOpen(true);
+      if (projRes.status === 'fulfilled') {
+        const pData = projRes.value?.project || projRes.value?.data || projRes.value;
+        setProject(pData);
+      }
 
-        // Check if there was a saved selection for this project in session
-        let saved = null;
-        try {
-          const raw = sessionStorage.getItem(`rapidinsight_catalog_${projectId}`);
-          if (raw) saved = JSON.parse(raw);
-        } catch {
-          saved = null;
+      let assetList = [];
+      if (assetsRes.status === 'fulfilled') {
+        const rawAssets = assetsRes.value?.data || assetsRes.value || [];
+        const populatedList = (Array.isArray(rawAssets) ? rawAssets : []).filter((a) => a.is_populated);
+        assetList = populatedList.length ? populatedList : (Array.isArray(rawAssets) ? rawAssets : []);
+        setAssets(assetList);
+      }
+
+      setIsBuilderOpen(true);
+
+      // Check if there was a saved selection for this project in session
+      let saved = null;
+      try {
+        const raw = sessionStorage.getItem(`rapidinsight_catalog_${projectId}`);
+        if (raw) saved = JSON.parse(raw);
+      } catch {
+        saved = null;
+      }
+
+      const targetAsset =
+        saved?.assetId && assetList.find((a) => a.asset_id === saved.assetId)
+          ? assetList.find((a) => a.asset_id === saved.assetId)
+          : assetList.length === 1
+          ? assetList[0]
+          : null;
+
+      if (targetAsset) {
+        setSelectedAssetId(targetAsset.asset_id);
+
+        if (!targetAsset.is_populated) {
+          setReadinessWarning(
+            `Asset '${targetAsset.asset_name}' is not currently backed by a populated database table. Generate tables before profiling.`
+          );
+        } else {
+          setReadinessWarning('');
         }
 
-        const targetSourceId =
-          saved?.sourceId && sourcesList.some((s) => s.source_id === saved.sourceId)
-            ? saved.sourceId
-            : '';
+        // Fetch columns for the selected asset
+        setLoadingColumns(true);
+        const colsRes = await getCatalogColumns(projectId, targetAsset.asset_id);
+        const rawCols = colsRes?.data || colsRes || [];
+        const colList = Array.isArray(rawCols) ? rawCols : [];
+        setColumns(colList);
 
-        setSelectedSourceId(targetSourceId);
-
-        if (targetSourceId) {
-          // Fetch assets for the selected source
-          setLoadingAssets(true);
-          const assetsRes = await getCatalogAssets(projectId, targetSourceId);
-          const rawAssets = assetsRes?.data || assetsRes || [];
-          const populatedList = (Array.isArray(rawAssets) ? rawAssets : []).filter((a) => a.is_populated);
-          const assetList = populatedList.length ? populatedList : (Array.isArray(rawAssets) ? rawAssets : []);
-          setAssets(assetList);
-
-          const targetAsset =
-            saved?.assetId && assetList.find((a) => a.asset_id === saved.assetId)
-              ? assetList.find((a) => a.asset_id === saved.assetId)
-              : assetList.length === 1
-              ? assetList[0]
-              : null;
-
-          if (targetAsset) {
-            setSelectedAssetId(targetAsset.asset_id);
-
-            if (!targetAsset.is_populated) {
-              setReadinessWarning(
-                `Asset '${targetAsset.asset_name}' is not currently backed by a populated database table. Generate tables before profiling.`
-              );
-            } else {
-              setReadinessWarning('');
-            }
-
-            // Fetch columns for the selected asset
-            setLoadingColumns(true);
-            const colsRes = await getCatalogColumns(projectId, targetAsset.asset_id);
-            const rawCols = colsRes?.data || colsRes || [];
-            const colList = Array.isArray(rawCols) ? rawCols : [];
-            setColumns(colList);
-
-            // Restore column and statistic if previously selected
-            if (saved?.columnId && colList.some((c) => c.column_id === saved.columnId)) {
-              setSelectedColumnId(saved.columnId);
-              if (saved?.statistic) {
-                setSelectedStatistic(saved.statistic);
-              }
-              if (saved?.resultData) {
-                setResultData(saved.resultData);
-              }
-            }
+        // Restore column and statistic if previously selected
+        if (saved?.columnId && colList.some((c) => c.column_id === saved.columnId)) {
+          setSelectedColumnId(saved.columnId);
+          if (saved?.statistic) {
+            setSelectedStatistic(saved.statistic);
+          }
+          if (saved?.resultData) {
+            setResultData(saved.resultData);
           }
         }
       }
     } catch (err) {
-      setError(err?.message || 'Failed to fetch catalog sources.');
+      setError(err?.message || 'Failed to fetch catalog assets.');
     } finally {
-      setLoadingSources(false);
+      setLoadingProject(false);
       setLoadingAssets(false);
       setLoadingColumns(false);
       setInitialLoading(false);
@@ -767,12 +775,12 @@ export default function DataCatalogPage() {
 
   // Sync state to sessionStorage
   useEffect(() => {
-    if (!projectId || !selectedSourceId) return;
+    if (!projectId) return;
     try {
       sessionStorage.setItem(
         `rapidinsight_catalog_${projectId}`,
         JSON.stringify({
-          sourceId: selectedSourceId,
+          projectId,
           assetId: selectedAssetId,
           columnId: selectedColumnId,
           statistic: selectedStatistic,
@@ -782,53 +790,9 @@ export default function DataCatalogPage() {
     } catch {
       // Ignore storage errors
     }
-  }, [projectId, selectedSourceId, selectedAssetId, selectedColumnId, selectedStatistic, resultData]);
+  }, [projectId, selectedAssetId, selectedColumnId, selectedStatistic, resultData]);
 
-  // 2. Fetch assets when source changes
-  const handleSourceChange = async (e) => {
-    const sourceId = e.target.value;
-    setSelectedSourceId(sourceId);
-    
-    // Reset downstream
-    setSelectedAssetId('');
-    setAssets([]);
-    setSelectedColumnId('');
-    setColumns([]);
-    setSelectedStatistic('');
-    setReadinessWarning('');
-    setResultData(null);
-    setError('');
-
-    if (!sourceId) return;
-
-    try {
-      setLoadingAssets(true);
-      const res = await getCatalogAssets(projectId, sourceId);
-      const rawAssets = res?.data || res || [];
-      const populatedList = (Array.isArray(rawAssets) ? rawAssets : []).filter((a) => a.is_populated);
-      const items = populatedList.length ? populatedList : (Array.isArray(rawAssets) ? rawAssets : []);
-      setAssets(items);
-
-      // If only 1 asset exists for this loaded file, automatically select it and fetch its columns
-      if (items.length === 1) {
-        const onlyAsset = items[0];
-        setSelectedAssetId(onlyAsset.asset_id);
-        setReadinessWarning('');
-        setLoadingColumns(true);
-        const colsRes = await getCatalogColumns(projectId, onlyAsset.asset_id);
-        const colList = colsRes?.data || colsRes || [];
-        setColumns(Array.isArray(colList) ? colList : []);
-        setLoadingColumns(false);
-      }
-    } catch (err) {
-      setError(err?.message || 'Failed to fetch catalog assets.');
-    } finally {
-      setLoadingAssets(false);
-      setLoadingColumns(false);
-    }
-  };
-
-  // 3. Fetch columns when asset changes
+  // 2. Fetch columns when asset changes
   const handleAssetChange = async (e) => {
     const assetId = e.target.value;
     setSelectedAssetId(assetId);
@@ -839,6 +803,7 @@ export default function DataCatalogPage() {
     setSelectedStatistic('');
     setResultData(null);
     setError('');
+    setValidationError('');
 
     const currentAsset = assets.find((a) => a.asset_id === assetId);
     if (currentAsset && !currentAsset.is_populated) {
@@ -863,15 +828,16 @@ export default function DataCatalogPage() {
     }
   };
 
-  // 4. Handle column change
+  // 3. Handle column change
   const handleColumnChange = (e) => {
     const colId = e.target.value;
     setSelectedColumnId(colId);
     setSelectedStatistic('');
+    setValidationError('');
     setResultData(null);
   };
 
-  // 5. Compute available statistics based on column data type
+  // 4. Compute available statistics based on column data type
   const selectedColumn = useMemo(() => {
     return columns.find((c) => c.column_id === selectedColumnId) || null;
   }, [columns, selectedColumnId]);
@@ -889,14 +855,14 @@ export default function DataCatalogPage() {
     return assets.find((a) => a.asset_id === selectedAssetId) || null;
   }, [assets, selectedAssetId]);
 
-  // Can run check - user can run profiling whenever source and asset are selected
+  // Can run check
   const canRun = useMemo(() => {
     return (
-      Boolean(selectedSourceId) &&
+      Boolean(projectId) &&
       Boolean(selectedAssetId) &&
       !runningQuery
     );
-  }, [selectedSourceId, selectedAssetId, runningQuery]);
+  }, [projectId, selectedAssetId, runningQuery]);
 
   // Load profiling history from database
   const loadProfilingHistory = useCallback(async () => {
@@ -917,22 +883,36 @@ export default function DataCatalogPage() {
     loadProfilingHistory();
   }, [loadProfilingHistory]);
 
-  // 6. Run profiling
+  // 5. Run profiling with mandatory statistics validation
   const handleRunProfile = async () => {
-    if (!canRun) return;
+    if (!selectedAssetId) {
+      setValidationError('Please select an asset / table first.');
+      setError('Please select an asset / table first.');
+      return;
+    }
+    if (!selectedColumnId) {
+      setValidationError('Please select an asset column first.');
+      setError('Please select an asset column first.');
+      return;
+    }
+    if (!selectedStatistic) {
+      setValidationError('You need to select a profiling statistic.');
+      setError('You need to select a profiling statistic.');
+      return;
+    }
+
     try {
       setRunningQuery(true);
       setError('');
+      setValidationError('');
       setResultData(null);
 
       const payload = {
         projectId,
-        assetId: selectedAssetId
+        assetId: selectedAssetId,
+        columnId: selectedColumnId,
+        statistic: selectedStatistic
       };
-      if (selectedColumnId && selectedStatistic) {
-        payload.columnId = selectedColumnId;
-        payload.statistic = selectedStatistic;
-      }
 
       const res = await runProfileStat(payload);
 
@@ -951,26 +931,28 @@ export default function DataCatalogPage() {
     setIsBuilderOpen(true);
     setSelectedColumnId('');
     setSelectedStatistic('');
+    setValidationError('');
     setResultData(null);
     setError('');
   };
 
   const handleOpenBuilder = () => {
     setIsBuilderOpen(true);
+    setValidationError('');
     setResultData(null);
     setError('');
   };
 
   const handleResetBuilder = () => {
-    setSelectedSourceId('');
+    setSelectedProjectId(projectId || '');
     setSelectedAssetId('');
-    setAssets([]);
     setSelectedColumnId('');
     setColumns([]);
     setSelectedStatistic('');
     setReadinessWarning('');
     setResultData(null);
     setError('');
+    setValidationError('');
     try {
       sessionStorage.removeItem(`rapidinsight_catalog_${projectId}`);
     } catch {
@@ -981,8 +963,10 @@ export default function DataCatalogPage() {
   const handleRunAnother = () => {
     setSelectedColumnId('');
     setSelectedStatistic('');
+    setValidationError('');
     setResultData(null);
   };
+
 
   return (
     <div className="catalog-page">
@@ -1056,35 +1040,30 @@ export default function DataCatalogPage() {
           </div>
 
           <div className="catalog-form-grid">
-            {/* 1. Source */}
+            {/* 1. Active Project */}
             <div className="catalog-form-group">
-              <label htmlFor="catalog-source-select" className="catalog-form-label">
-                1. Project Source (Loaded Data File)
+              <label htmlFor="catalog-project-select" className="catalog-form-label">
+                1. Project Source (Active Project)
               </label>
               <select
-                id="catalog-source-select"
+                id="catalog-project-select"
                 className="catalog-select"
-                value={selectedSourceId}
-                onChange={handleSourceChange}
-                disabled={loadingSources}
+                value={selectedProjectId || projectId}
+                onChange={(e) => setSelectedProjectId(e.target.value)}
+                disabled={loadingProject}
               >
-                <option value="">
-                  {loadingSources
-                    ? 'Loading sources...'
-                    : sources.length === 0
-                    ? '-- No loaded data files found (ingest data in Data Ingestion first) --'
-                    : '-- Select Loaded Data File --'}
+                <option value={projectId}>
+                  {loadingProject
+                    ? 'Loading active project...'
+                    : project?.name
+                    ? `${project.name} (Active Project)`
+                    : 'Active Project'}
                 </option>
-                {sources.map((src) => (
-                  <option key={src.source_id} value={src.source_id}>
-                    {src.source_name}
-                  </option>
-                ))}
               </select>
             </div>
 
-            {/* 2. Asset — shown after Project Source is selected */}
-            {selectedSourceId && (
+            {/* 2. Asset / Table */}
+            {(selectedProjectId || projectId) && (
               <div className="catalog-form-group">
                 <label htmlFor="catalog-asset-select" className="catalog-form-label">
                   2. Asset / Table
@@ -1097,7 +1076,11 @@ export default function DataCatalogPage() {
                   disabled={loadingAssets}
                 >
                   <option value="">
-                    {loadingAssets ? 'Loading assets...' : '-- Select Asset --'}
+                    {loadingAssets
+                      ? 'Loading assets...'
+                      : assets.length === 0
+                      ? '-- No assets found in active project --'
+                      : '-- Select Asset --'}
                   </option>
                   {assets.map((ast) => (
                     <option key={ast.asset_id} value={ast.asset_id}>
@@ -1141,9 +1124,15 @@ export default function DataCatalogPage() {
                 </label>
                 <select
                   id="catalog-statistic-select"
-                  className="catalog-select"
+                  className={`catalog-select ${validationError && !selectedStatistic ? 'catalog-select--invalid' : ''}`}
                   value={selectedStatistic}
-                  onChange={(e) => setSelectedStatistic(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedStatistic(e.target.value);
+                    if (e.target.value) {
+                      setValidationError('');
+                      setError('');
+                    }
+                  }}
                 >
                   <option value="">-- Select Statistic --</option>
                   {availableStatistics.map((stat) => (
@@ -1156,8 +1145,8 @@ export default function DataCatalogPage() {
             )}
           </div>
 
-          {/* Empty Sources Notice */}
-          {sources.length === 0 && !loadingSources && (
+          {/* Empty Assets Notice */}
+          {assets.length === 0 && !loadingAssets && !loadingProject && (
             <div className="catalog-banner-info">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="10" />
@@ -1183,10 +1172,20 @@ export default function DataCatalogPage() {
           {/* Action Row — shown after Asset is selected */}
           {selectedAssetId && (
             <div className="catalog-action-row">
+              {validationError && (
+                <div className="catalog-validation-msg" role="alert">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                  <span>{validationError}</span>
+                </div>
+              )}
               <button
                 type="button"
                 className="catalog-btn-primary"
-                disabled={!canRun}
+                disabled={runningQuery}
                 onClick={handleRunProfile}
               >
                 {runningQuery ? (
