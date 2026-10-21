@@ -13,6 +13,7 @@ import {
   Filler
 } from 'chart.js';
 import { Bar, Line } from 'react-chartjs-2';
+import { useTheme } from '../context/ThemeContext.jsx';
 
 import {
   getProjectById
@@ -40,6 +41,15 @@ ChartJS.register(
 );
 
 function CatalogChartCard({ chart }) {
+  let currentTheme = 'light';
+  try {
+    const themeContext = useTheme();
+    if (themeContext?.theme) currentTheme = themeContext.theme;
+  } catch {
+    currentTheme = typeof document !== 'undefined' && document.body?.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  }
+  const isLight = currentTheme === 'light';
+
   const isLine = chart.type === 'line';
   const initialLabels = chart.data?.labels || [];
   const initialDatasets = chart.data?.datasets || [];
@@ -103,6 +113,12 @@ function CatalogChartCard({ chart }) {
 
   // Options customized for the chosen orientation and theme
   const chartOptions = useMemo(() => {
+    const textColor = isLight ? '#334155' : '#94a3b8';
+    const gridColor = isLight ? 'rgba(100, 116, 139, 0.16)' : 'rgba(148, 163, 184, 0.08)';
+    const borderColor = isLight ? 'rgba(100, 116, 139, 0.28)' : 'rgba(148, 163, 184, 0.15)';
+    const legendColor = isLight ? '#1e293b' : '#cbd5e1';
+    const tooltipBg = isLight ? '#1e1b4b' : '#0f172a';
+
     return {
       responsive: true,
       maintainAspectRatio: false,
@@ -116,7 +132,7 @@ function CatalogChartCard({ chart }) {
           position: 'top',
           align: 'end',
           labels: {
-            color: '#94a3b8',
+            color: legendColor,
             boxWidth: 10,
             boxHeight: 10,
             usePointStyle: true,
@@ -124,8 +140,8 @@ function CatalogChartCard({ chart }) {
           }
         },
         tooltip: {
-          backgroundColor: '#0f172a',
-          borderColor: 'rgba(148, 163, 184, 0.25)',
+          backgroundColor: tooltipBg,
+          borderColor: isLight ? 'rgba(111, 98, 198, 0.5)' : 'rgba(148, 163, 184, 0.25)',
           borderWidth: 1,
           padding: 12,
           cornerRadius: 8,
@@ -149,15 +165,15 @@ function CatalogChartCard({ chart }) {
       scales: {
         x: {
           grid: {
-            color: isHorizontal ? 'rgba(148, 163, 184, 0.08)' : 'transparent',
+            color: isHorizontal ? gridColor : 'transparent',
             drawBorder: false
           },
           border: {
-            color: 'rgba(148, 163, 184, 0.15)'
+            color: borderColor
           },
           ticks: {
-            color: '#94a3b8',
-            font: { size: 10 },
+            color: textColor,
+            font: { size: 10, weight: isLight ? '600' : '400' },
             maxRotation: isHorizontal ? 0 : 35,
             minRotation: 0,
             autoSkip: true,
@@ -166,15 +182,15 @@ function CatalogChartCard({ chart }) {
         },
         y: {
           grid: {
-            color: isHorizontal ? 'transparent' : 'rgba(148, 163, 184, 0.08)',
+            color: isHorizontal ? 'transparent' : gridColor,
             drawBorder: false
           },
           border: {
-            color: 'rgba(148, 163, 184, 0.15)'
+            color: borderColor
           },
           ticks: {
-            color: '#94a3b8',
-            font: { size: 10.5, weight: isHorizontal ? '500' : '400' },
+            color: textColor,
+            font: { size: 10.5, weight: isHorizontal ? '600' : (isLight ? '600' : '400') },
             autoSkip: !isHorizontal,
             callback: function (val) {
               if (isHorizontal) {
@@ -187,7 +203,7 @@ function CatalogChartCard({ chart }) {
         }
       }
     };
-  }, [orientation, isHorizontal, initialDatasets.length]);
+  }, [orientation, isHorizontal, initialDatasets.length, isLight]);
 
   return (
     <div className={`catalog-chart-card ${chart.isFullWidth ? 'catalog-chart-card--full-width' : ''}`}>
@@ -232,11 +248,13 @@ function CatalogChartCard({ chart }) {
           {!isLine && (
             <button
               type="button"
-              className="catalog-pill-btn catalog-orient-btn"
+              className={`catalog-pill-btn catalog-orient-btn ${isHorizontal ? 'is-horizontal' : 'is-vertical'}`}
               onClick={() => setOrientation((o) => (o === 'x' ? 'y' : 'x'))}
               title={`Switch to ${isHorizontal ? 'Vertical' : 'Horizontal'} layout`}
+              aria-label={`Switch to ${isHorizontal ? 'Vertical' : 'Horizontal'} layout`}
             >
-              {isHorizontal ? '↕ Vertical' : '⇄ Horizontal'}
+              <span className="orient-icon" aria-hidden="true">{isHorizontal ? '↕' : '⇄'}</span>
+              <span className="orient-text">{isHorizontal ? 'Vertical' : 'Horizontal'}</span>
             </button>
           )}
         </div>

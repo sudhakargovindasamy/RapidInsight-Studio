@@ -1096,7 +1096,7 @@ export default function DataIngestionPage() {
                 <div className="panel-actions-row">
                   <button
                     type="button"
-                    className="primary-button"
+                    className="primary-button ingest-confirm-btn"
                     disabled={!selectedFile || !validationResult?.isValid || Boolean(fileUploadError) || ingestingFile}
                     onClick={handleIngestFile}
                   >
@@ -1106,7 +1106,14 @@ export default function DataIngestionPage() {
                         Ingesting File Data...
                       </>
                     ) : (
-                      'Confirm & Ingest File Data'
+                      <>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }}>
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                          <polyline points="17 8 12 3 7 8"/>
+                          <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        Confirm & Ingest File Data
+                      </>
                     )}
                   </button>
                 </div>
@@ -1186,7 +1193,7 @@ export default function DataIngestionPage() {
                 <div className="panel-actions-row">
                   <button
                     type="button"
-                    className="primary-button"
+                    className="primary-button mock-generate-btn"
                     disabled={ingestingMock || mockRowCount < 1}
                     onClick={handleIngestMock}
                   >
@@ -1196,7 +1203,12 @@ export default function DataIngestionPage() {
                         Generating & Ingesting Records...
                       </>
                     ) : (
-                      `Generate & Ingest ${mockRowCount} Mock Rows`
+                      <>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }}>
+                          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                        </svg>
+                        {`Generate & Ingest ${mockRowCount} Mock Rows`}
+                      </>
                     )}
                   </button>
                 </div>
@@ -1308,11 +1320,25 @@ export default function DataIngestionPage() {
                 <div className="db-test-action">
                   <button
                     type="button"
-                    className="secondary-button"
+                    className="secondary-button db-test-btn"
                     disabled={testingConnection || (connectionMode === 'uri' ? !connectionString : !host || !database || !user)}
                     onClick={handleTestDbConnection}
                   >
-                    {testingConnection ? 'Testing Connection & Discovering Tables...' : 'Test Connection & Discover Tables'}
+                    {testingConnection ? (
+                      <>
+                        <span className="spinner-inline"></span>
+                        Testing Connection & Discovering Tables...
+                      </>
+                    ) : (
+                      <>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }}>
+                          <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                          <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                          <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                        </svg>
+                        Test Connection & Discover Tables
+                      </>
+                    )}
                   </button>
                 </div>
 
@@ -1579,7 +1605,7 @@ export default function DataIngestionPage() {
                         {!asset.is_populated ? (
                           <button
                             type="button"
-                            className="primary-button small-btn"
+                            className="primary-button small-btn action-load-btn"
                             onClick={() => handleSelectAssetForIngestion(asset.asset_id)}
                           >
                             Load Data →
@@ -1588,7 +1614,7 @@ export default function DataIngestionPage() {
                           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                             <button
                               type="button"
-                              className="secondary-button small-btn"
+                              className="secondary-button small-btn action-reload-btn"
                               onClick={() => handleSelectAssetForIngestion(asset.asset_id)}
                             >
                               Reload Data

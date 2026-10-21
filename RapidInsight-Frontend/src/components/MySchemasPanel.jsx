@@ -550,7 +550,7 @@ function MySchemasPanel({
           />
           <button
             type="button"
-            className="schema-btn schema-btn-ghost"
+            className="schema-btn schema-btn-ghost custom-kpi-add-btn"
             onClick={handleAddKpi}
             disabled={!customKpiInput.trim()}
           >

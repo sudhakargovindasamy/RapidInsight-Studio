@@ -300,6 +300,44 @@
   box-shadow: 0 0 0 3px var(--schema-primary-soft);
 }
 
+.project-report-kpi-input-row button,
+.project-report-schemas-section .custom-kpi-add-btn,
+.project-report-schemas-section .custom-kpi-input-row button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 22px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 750;
+  color: var(--text-on-primary, #ffffff) !important;
+  background: var(--schema-primary, #6f62c6) !important;
+  border: 1px solid var(--schema-primary, #6f62c6) !important;
+  box-shadow: 0 4px 14px var(--schema-primary-glow, rgba(111, 98, 198, 0.28));
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.project-report-kpi-input-row button:hover:not(:disabled),
+.project-report-schemas-section .custom-kpi-add-btn:hover:not(:disabled),
+.project-report-schemas-section .custom-kpi-input-row button:hover:not(:disabled) {
+  background: var(--schema-primary-hover, #6255b7) !important;
+  border-color: var(--schema-primary-hover, #6255b7) !important;
+  box-shadow: 0 6px 20px var(--schema-primary-glow, rgba(111, 98, 198, 0.4));
+  transform: translateY(-1px);
+}
+
+.project-report-kpi-input-row button:disabled,
+.project-report-schemas-section .custom-kpi-add-btn:disabled,
+.project-report-schemas-section .custom-kpi-input-row button:disabled {
+  opacity: 0.45 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
 .project-report-kpi-tags {
   display: flex;
   flex-wrap: wrap;
@@ -517,4 +555,41 @@
 
 .project-report-schemas-section .schema-delete-btn {
   margin-left: auto !important;
+}
+
+/* Light mode overrides for target KPI card and inputs */
+body[data-theme='light'] .project-report-schemas-section .pws-kpi-card {
+  background: #ffffff !important;
+  border: 1px solid var(--border-color, #d4d4e8) !important;
+  box-shadow: 0 4px 18px rgba(68, 63, 125, 0.08) !important;
+}
+
+body[data-theme='light'] .project-report-schemas-section .custom-kpi-input {
+  background: #ffffff !important;
+  border: 1.5px solid #cfcaea !important;
+  color: #222238 !important;
+}
+
+body[data-theme='light'] .project-report-schemas-section .custom-kpi-tag {
+  background: #edeaf8 !important;
+  color: #594cad !important;
+  border: 1px solid #cfcaea !important;
+}
+
+body[data-theme='light'] .project-report-kpi-config {
+  background: #ffffff !important;
+  border: 1px solid var(--border-color, #d4d4e8) !important;
+  box-shadow: 0 4px 18px rgba(68, 63, 125, 0.08) !important;
+}
+
+body[data-theme='light'] .project-report-kpi-input {
+  background: #ffffff !important;
+  border: 1.5px solid #cfcaea !important;
+  color: #222238 !important;
+}
+
+body[data-theme='light'] .project-report-kpi-tag {
+  background: #edeaf8 !important;
+  color: #594cad !important;
+  border: 1px solid #cfcaea !important;
 }

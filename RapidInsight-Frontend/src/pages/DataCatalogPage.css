@@ -804,14 +804,34 @@
 }
 
 .catalog-orient-btn {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  color: var(--text-secondary, #94a3b8);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(30, 35, 48, 0.85);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  color: #cbd5e1;
+  font-weight: 650;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .catalog-orient-btn:hover {
   border-color: var(--schema-primary, #6366f1);
-  color: #fff;
+  color: #ffffff;
+  background: rgba(99, 102, 241, 0.22);
+  transform: translateY(-1px);
+}
+
+.orient-icon {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.orient-text {
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
 }
 
 .catalog-chart-scroll-box {
@@ -934,6 +954,148 @@
   color: #818cf8;
   border: 1px solid rgba(99, 102, 241, 0.35);
 }
+
+/* ==========================================================================
+   Data Catalog Light Mode Enhancements (Vertical & Horizontal Visibility)
+   ========================================================================== */
+body[data-theme='light'] .catalog-chart-card {
+  background: #ffffff !important;
+  border: 1px solid var(--border-color, #d4d4e8) !important;
+  box-shadow: 0 4px 20px rgba(68, 63, 125, 0.08) !important;
+}
+
+body[data-theme='light'] .catalog-chart-card--full-width {
+  background: #ffffff !important;
+  border: 1.5px solid var(--border-focus, #8f84d0) !important;
+}
+
+body[data-theme='light'] .catalog-chart-title-row h4 {
+  color: var(--text-main, #222238) !important;
+}
+
+body[data-theme='light'] .catalog-chart-title-area p {
+  color: var(--text-secondary, #50506c) !important;
+}
+
+body[data-theme='light'] .catalog-chart-count-pill {
+  background: var(--schema-primary-soft, #e7e5fa) !important;
+  color: var(--schema-primary-dark, #594cad) !important;
+  border: 1px solid #cfcaea !important;
+  font-weight: 700 !important;
+}
+
+body[data-theme='light'] .catalog-chart-pill-group {
+  background: #f1f0fa !important;
+  border: 1px solid #cfcaea !important;
+}
+
+body[data-theme='light'] .catalog-pill-btn {
+  color: #4b4668 !important;
+  font-weight: 700 !important;
+}
+
+body[data-theme='light'] .catalog-pill-btn:hover {
+  color: var(--schema-primary, #6f62c6) !important;
+  background: rgba(111, 98, 198, 0.12) !important;
+}
+
+body[data-theme='light'] .catalog-pill-btn.active {
+  background: var(--schema-primary, #6f62c6) !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(111, 98, 198, 0.35) !important;
+}
+
+/* Explicit high-contrast Vertical / Horizontal toggle button in Light Mode */
+body[data-theme='light'] .catalog-orient-btn {
+  background: #edeaf8 !important;
+  border: 1.5px solid #cfcaea !important;
+  color: #2e2848 !important;
+  font-weight: 750 !important;
+  box-shadow: 0 2px 6px rgba(68, 63, 125, 0.08) !important;
+}
+
+body[data-theme='light'] .catalog-orient-btn:hover {
+  background: var(--schema-primary-subtle, #f0effb) !important;
+  border-color: var(--schema-primary, #6f62c6) !important;
+  color: var(--schema-primary, #6f62c6) !important;
+  box-shadow: 0 4px 12px rgba(111, 98, 198, 0.16) !important;
+}
+
+body[data-theme='light'] .catalog-orient-btn .orient-icon {
+  color: var(--schema-primary, #6f62c6) !important;
+  font-weight: 900 !important;
+}
+
+body[data-theme='light'] .catalog-orient-btn .orient-text {
+  color: #241d3b !important;
+  font-weight: 750 !important;
+}
+
+/* History table gridlines and borders in light mode */
+body[data-theme='light'] .catalog-history-table-container {
+  border: 1px solid #d4d4e8 !important;
+  background: #ffffff !important;
+  box-shadow: 0 2px 10px rgba(68, 63, 125, 0.05);
+}
+
+body[data-theme='light'] .catalog-history-table th {
+  background: #f4f3fb !important;
+  color: #2b254a !important;
+  font-weight: 750 !important;
+  border-bottom: 2px solid #cfcaea !important;
+  border-right: 1px solid #e3e1f2 !important;
+}
+
+body[data-theme='light'] .catalog-history-table th:last-child {
+  border-right: none !important;
+}
+
+body[data-theme='light'] .catalog-history-table td {
+  border-bottom: 1px solid #e5e3f4 !important;
+  border-right: 1px solid #f0effa !important;
+  color: #222238 !important;
+}
+
+body[data-theme='light'] .catalog-history-table td:last-child {
+  border-right: none !important;
+}
+
+body[data-theme='light'] .catalog-history-table tbody tr:hover td {
+  background: #f5f4fd !important;
+}
+
+body[data-theme='light'] .catalog-history-time-cell {
+  color: #555070 !important;
+  font-weight: 500;
+}
+
+body[data-theme='light'] .catalog-history-source {
+  color: #3b3558 !important;
+  font-weight: 600;
+}
+
+body[data-theme='light'] .catalog-history-type {
+  color: #6a6488 !important;
+}
+
+body[data-theme='light'] .catalog-historical-header-card {
+  background: #ffffff !important;
+  border: 1px solid #d4d4e8 !important;
+  box-shadow: 0 4px 18px rgba(68, 63, 125, 0.07) !important;
+}
+
+body[data-theme='light'] .catalog-back-btn {
+  background: #f1f0fa !important;
+  border: 1px solid #cfcaea !important;
+  color: #2e2848 !important;
+}
+
+body[data-theme='light'] .catalog-back-btn:hover {
+  background: var(--schema-primary-subtle, #f0effb) !important;
+  border-color: var(--schema-primary, #6f62c6) !important;
+  color: var(--schema-primary, #6f62c6) !important;
+}
+
 
 
 
