@@ -59,6 +59,9 @@ RapidInsight Studio introduces a **decoupled, two-phase data generation pipeline
 
 - **Multi-Format Schema Ingestion:** Upload `.json`, `.yaml`, `.yml`, or `.csv` schema definitions with automatic data type detection and validation.
 - **External Database Discovery & Asset Registry:** Connect directly to external databases (PostgreSQL, MySQL), discover live tables, validate schemas, and register them into the unified asset catalog.
+- **Multi-Modal Data Ingestion Engine:** Populate registered catalog assets via direct file upload (CSV, XLSX, XLS, JSON, YAML) with client-side & server-side schema verification, realistic synthetic mock generation, or external database imports with column mapping.
+- **Project Files Ingestion Tracking:** Real-time visibility into which registered files in an active project have business records loaded versus files still remaining/pending ingestion.
+- **Data Catalog & Deep Column Profiling:** Inspect column data types, null counts, distinct counts, averages, and numerical distributions with strict query validation and persistent run history in `public.catalog_profiling_result`.
 - **Concurrent Duplicate & Update Protection:** Fingerprint-based data detection coupled with database transaction advisory locks ensures safe replacement of updated schemas while blocking duplicate table collisions.
 - **Interactive Visual Schema Playground:** Pan-and-zoom graph canvas with minimap, draggable entity nodes, join path highlights, and attribute inspection.
 - **Target KPIs & Metrics Engine:** Custom KPI input interface allowing business users to define metrics that are translated into secure SQL and executed against real tables.
@@ -160,6 +163,7 @@ Project-RapidInsightStudio/
 │   │   ├── pages/                      # Application route pages
 │   │   │   ├── ProjectWorkspacePage    # Overview & project details
 │   │   │   ├── RegistryAssetPage       # Upload schema & database connector
+│   │   │   ├── DataIngestionPage       # Multi-modal ingestion (File, Mock, DB) & load tracker
 │   │   │   ├── ProjectReportPage       # Uploaded schemas, KPIs & executive analytics
 │   │   │   ├── DataCatalogPage         # Catalog assets & profiling metrics
 │   │   │   ├── SchemaPlaygroundPage    # Visual schema graph explorer
@@ -266,11 +270,26 @@ Ensure you have the following installed on your machine:
 ## 🔄 Key Workflows
 
 ### 1. Ingesting Schemas & Connecting Databases
-- Navigate to **Registry Assest** in the sidebar.
+- Navigate to **Registry Asset** in the sidebar.
 - Upload a schema file (`.json`, `.csv`, `.yaml`) or provide database connection credentials to discover external tables.
-- Click **Import Selected Tables** to register assets in the catalog and load validated physical tables into PostgreSQL.
+- Register assets to store column definitions and schema specifications in the project catalog.
 
-### 2. Visual Exploration in Schema Playground
+### 2. Loading Business Data (Data Ingestion Engine)
+- Navigate to **Data Ingestion** in the sidebar.
+- Select your active project and choose an asset from the registered catalog.
+- Populate the asset's physical PostgreSQL table via one of three methods:
+  - **Method A (File Upload):** Upload a CSV, XLSX, XLS, JSON, or YAML file with automatic column and type validation.
+  - **Method B (Synthetic Mock Data):** Generate realistic mock records matching the exact column specifications and primary key constraints.
+  - **Method C (External Database):** Connect to a live PostgreSQL database, introspect tables, map columns, and stream records.
+- Track real-time ingestion status at the bottom of the page (**Loaded vs Remaining files**).
+
+### 3. Data Catalog & Column Profiling
+- Navigate to **Data Catalog** in the sidebar.
+- Dropdown 1 isolates your active workspace project.
+- Select target tables, choose columns, and run statistical profiling (`NULL_COUNT`, `COUNT`, `DISTINCT_COUNT`, `MIN`, `MAX`, `AVG`).
+- Mandatory validation prevents unselected executions, and all historical profiling runs are persisted to `public.catalog_profiling_result` with interactive Chart.js visualizations.
+
+### 4. Visual Exploration in Schema Playground
 - Navigate to **Schema Playground**.
 - Explore auto-inferred join relationships (primary keys to foreign keys), table schemas, and data structures on the visual canvas.
 
