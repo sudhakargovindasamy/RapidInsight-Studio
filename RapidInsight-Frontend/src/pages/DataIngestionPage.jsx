@@ -631,6 +631,7 @@ export default function DataIngestionPage() {
     const config = connectionMode === 'uri'
       ? { connectionString: connectionString.trim(), allowSelfSigned: true }
       : {
+          type: 'postgres',
           host: host.trim(),
           port: Number(port) || 5432,
           database: database.trim(),
@@ -663,6 +664,7 @@ export default function DataIngestionPage() {
     const config = connectionMode === 'uri'
       ? { connectionString: connectionString.trim(), allowSelfSigned: true }
       : {
+          type: 'postgres',
           host: host.trim(),
           port: Number(port) || 5432,
           database: database.trim(),
@@ -709,6 +711,7 @@ export default function DataIngestionPage() {
       const config = connectionMode === 'uri'
         ? { connectionString: connectionString.trim(), allowSelfSigned: true }
         : {
+            type: 'postgres',
             host: host.trim(),
             port: Number(port) || 5432,
             database: database.trim(),
