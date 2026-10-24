@@ -372,7 +372,14 @@ export default function DataIngestionPage() {
     try {
       setLoadingAssets(true);
       const res = await getCatalogAssets(selectedProjectId);
-      const list = res?.data || (Array.isArray(res) ? res : []);
+      const rawList = res?.data || (Array.isArray(res) ? res : []);
+      const seen = new Set();
+      const list = rawList.filter(a => {
+        const key = a.fq_name || a.asset_name;
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
       setAssets(list);
 
       // If previous asset is still in the new list, update it
@@ -622,14 +629,15 @@ export default function DataIngestionPage() {
     setColumnMapping({});
 
     const config = connectionMode === 'uri'
-      ? { connectionString: connectionString.trim() }
+      ? { connectionString: connectionString.trim(), allowSelfSigned: true }
       : {
           host: host.trim(),
           port: Number(port) || 5432,
           database: database.trim(),
           user: user.trim(),
           password,
-          sslMode
+          sslMode,
+          allowSelfSigned: sslMode !== 'strict'
         };
 
     try {
@@ -653,14 +661,15 @@ export default function DataIngestionPage() {
     setColumnMapping({});
 
     const config = connectionMode === 'uri'
-      ? { connectionString: connectionString.trim() }
+      ? { connectionString: connectionString.trim(), allowSelfSigned: true }
       : {
           host: host.trim(),
           port: Number(port) || 5432,
           database: database.trim(),
           user: user.trim(),
           password,
-          sslMode
+          sslMode,
+          allowSelfSigned: sslMode !== 'strict'
         };
 
     try {
@@ -698,14 +707,15 @@ export default function DataIngestionPage() {
       setSuccessBanner('');
 
       const config = connectionMode === 'uri'
-        ? { connectionString: connectionString.trim() }
+        ? { connectionString: connectionString.trim(), allowSelfSigned: true }
         : {
             host: host.trim(),
             port: Number(port) || 5432,
             database: database.trim(),
             user: user.trim(),
             password,
-            sslMode
+            sslMode,
+            allowSelfSigned: sslMode !== 'strict'
           };
 
       const res = await ingestDatabaseIntoAsset({
@@ -1309,9 +1319,10 @@ export default function DataIngestionPage() {
                         value={sslMode}
                         onChange={(e) => setSslMode(e.target.value)}
                       >
-                        <option value="prefer">prefer</option>
-                        <option value="require">require</option>
-                        <option value="disable">disable (local only)</option>
+                        <option value="require">require (Cloud SSL / self-signed certs supported)</option>
+                        <option value="allow-self-signed">allow-self-signed (Supabase / AWS RDS)</option>
+                        <option value="strict">strict (verify full CA chain)</option>
+                        <option value="disable">disable (plain text, local only)</option>
                       </select>
                     </div>
                   </div>
@@ -1579,7 +1590,19 @@ export default function DataIngestionPage() {
                         <strong>{asset.asset_name}</strong>
                         {isSelected && <span style={{ marginLeft: '8px', fontSize: '11px', color: '#6366f1', fontWeight: '700' }}>[Selected]</span>}
                       </td>
-                      <td>{asset.source_name || asset.fq_name || '—'}</td>
+                      <td>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          <span>
+                            {asset.source_name || asset.fq_name || '—'}
+                            {asset.is_synthetic && !String(asset.source_name || '').toLowerCase().includes('sdv') ? ' (SDV)' : ''}
+                          </span>
+                          {asset.is_synthetic && (
+                            <span className="badge-synthetic" style={{ fontSize: '10px', padding: '1px 6px', borderRadius: '4px', fontWeight: '700' }}>
+                              SDV
+                            </span>
+                          )}
+                        </div>
+                      </td>
                       <td>{asset.column_count != null ? `${asset.column_count} cols` : '—'}</td>
                       <td>
                         {asset.is_populated ? (

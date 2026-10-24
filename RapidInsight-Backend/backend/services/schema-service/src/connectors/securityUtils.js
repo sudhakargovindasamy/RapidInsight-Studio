@@ -128,23 +128,19 @@ function resolveSslConfig({ isLocalhost, ssl, sslMode, allowSelfSigned, rejectUn
     return false;
   }
 
-  // Explicitly allowed self-signed certificates or disabled CA verification
-  if (
-    sslMode === 'allow-self-signed' ||
-    sslMode === 'no-verify' ||
-    allowSelfSigned === true ||
-    rejectUnauthorized === false
-  ) {
-    return { rejectUnauthorized: false };
+  // Strict CA verification only when explicitly requested
+  if (sslMode === 'strict' || sslMode === 'verify-full' || rejectUnauthorized === true) {
+    return { rejectUnauthorized: true };
   }
 
   // Custom ssl object provided directly
   if (ssl && typeof ssl === 'object') {
-    return ssl;
+    return { rejectUnauthorized: false, ...ssl };
   }
 
-  // Default for remote connections: verify certificates securely
-  return { rejectUnauthorized: true };
+  // Default for remote connections (Supabase, AWS RDS, Neon, self-hosted, etc.):
+  // Enable full TLS/SSL encryption over the wire while permitting cloud pooler and self-signed certificates.
+  return { rejectUnauthorized: false };
 }
 
 module.exports = {

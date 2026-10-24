@@ -122,7 +122,10 @@ function UploadSchemaPanel({ projectId, onUploaded }) {
   // Database Connection Handlers
   function getConnectionConfig() {
     if (connectionMode === 'uri') {
-      return { connectionString: connectionString.trim() };
+      return { 
+        connectionString: connectionString.trim(),
+        allowSelfSigned: true
+      };
     }
     return {
       type: 'postgres',
@@ -130,7 +133,8 @@ function UploadSchemaPanel({ projectId, onUploaded }) {
       port: Number(port) || 5432,
       database: database.trim(),
       user: user.trim(),
-      password
+      password,
+      allowSelfSigned: true
     };
   }
 

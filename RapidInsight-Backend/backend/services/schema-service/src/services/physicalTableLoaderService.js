@@ -179,7 +179,8 @@ async function loadOrReplacePhysicalTable({
   bucket = null,
   displayName = null,
   source = null,
-  assetType = null
+  assetType = null,
+  assetId = null
 }) {
   const fields = schemaDefinition.fields || schemaDefinition.columns || [];
 
@@ -352,6 +353,7 @@ async function loadOrReplacePhysicalTable({
       sourceType: 'FILE_UPLOAD'
     },
     asset: {
+      assetId,
       schemaId,
       generatedTableId,
       schemaName: physicalSchemaName,

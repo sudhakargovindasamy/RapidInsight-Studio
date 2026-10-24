@@ -543,6 +543,7 @@ async function ingestFileIntoAsset({ project, userId, assetId, fileBuffer, origi
     supabase: null,
     project,
     userId,
+    assetId: asset.asset_id,
     schemaDefinition: { fields },
     rows: alignedRows,
     sanitizedTableName: asset.asset_name,
@@ -584,21 +585,32 @@ async function ingestMockDataIntoAsset({ project, userId, assetId, rowCount = 10
     primaryKey: Boolean(col.is_pk)
   }));
 
+  // Retrieve existing data source and label it as SDV
+  const { rows: sourceRows } = await pool.query(
+    'SELECT source_name, source_type FROM public.data_source WHERE source_id = $1',
+    [asset.source_id]
+  );
+  const baseName = sourceRows[0]?.source_name || `${asset.asset_name}.csv`;
+  const cleanBase = baseName.replace(/\s*\((SDV|Synthetic)\)/gi, '').trim();
+  const sdvSourceName = `${cleanBase} (SDV)`;
+  const existingSource = {
+    sourceName: sdvSourceName,
+    sourceType: 'INTERNAL_PROJECT_DB'
+  };
+
   const result = await loadOrReplacePhysicalTable({
     pool,
     supabase: null,
     project,
     userId,
+    assetId: asset.asset_id,
     schemaDefinition: { fields },
     rows: mockRows,
     sanitizedTableName: asset.asset_name,
     originalFileName: `${asset.asset_name}_synthetic.csv`,
     fileType: 'csv',
     displayName: `${project.name} / ${asset.asset_name} (Synthetic)`,
-    source: {
-      sourceName: 'Synthetic Data Generator',
-      sourceType: 'INTERNAL_PROJECT_DB'
-    }
+    source: existingSource
   });
 
   return {
@@ -677,6 +689,7 @@ async function ingestDatabaseIntoAsset({
       supabase: null,
       project,
       userId,
+      assetId: asset.asset_id,
       schemaDefinition: { fields },
       rows: mappedRows,
       sanitizedTableName: asset.asset_name,

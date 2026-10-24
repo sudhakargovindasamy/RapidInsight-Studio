@@ -85,7 +85,7 @@ async function registerCatalogMetadata({
 
     const sourceId = sourceRes.rows[0].source_id;
 
-    // 2. Idempotent CATALOG_ASSET registration
+    // 2. Idempotent CATALOG_ASSET registration (Strict single-asset per table/project)
     const schemaName = (asset.schemaName || 'public').trim();
     const assetName = asset.assetName.trim();
     const fqName = `${schemaName}.${assetName}`;
@@ -96,54 +96,102 @@ async function registerCatalogMetadata({
     const columnCount = typeof asset.columnCount === 'number' ? asset.columnCount : columns.length;
     const mimeType = asset.mimeType || null;
 
-    const assetQuery = `
-      INSERT INTO public.catalog_asset (
-        source_id,
-        project_id,
-        schema_id,
-        generated_table_id,
-        schema_name,
-        asset_name,
-        asset_type,
-        fq_name,
-        classification,
-        status,
-        created_by,
-        file_size,
-        sheet_name,
-        column_count,
-        mime_type
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'INTERNAL', 'ACTIVE', $9, $10, $11, $12, $13)
-      ON CONFLICT (source_id, fq_name) DO UPDATE SET
-        schema_id = COALESCE(EXCLUDED.schema_id, public.catalog_asset.schema_id),
-        generated_table_id = COALESCE(EXCLUDED.generated_table_id, public.catalog_asset.generated_table_id),
-        asset_type = EXCLUDED.asset_type,
-        file_size = COALESCE(EXCLUDED.file_size, public.catalog_asset.file_size),
-        sheet_name = COALESCE(EXCLUDED.sheet_name, public.catalog_asset.sheet_name),
-        column_count = COALESCE(EXCLUDED.column_count, public.catalog_asset.column_count),
-        mime_type = COALESCE(EXCLUDED.mime_type, public.catalog_asset.mime_type),
-        status = 'ACTIVE',
-        updated_at = now()
-      RETURNING asset_id;
-    `;
+    // Check if an asset already exists for this table in this project to prevent duplicates
+    let existingAssetId = asset.assetId || null;
+    if (!existingAssetId && asset.schemaId) {
+      const { rows: schemaAssetRows } = await client.query(
+        `SELECT asset_id FROM public.catalog_asset WHERE project_id = $1 AND schema_id = $2 AND status = 'ACTIVE' LIMIT 1`,
+        [project.id, asset.schemaId]
+      );
+      if (schemaAssetRows.length) existingAssetId = schemaAssetRows[0].asset_id;
+    }
+    if (!existingAssetId) {
+      const { rows: fqAssetRows } = await client.query(
+        `SELECT asset_id FROM public.catalog_asset WHERE project_id = $1 AND fq_name = $2 AND status = 'ACTIVE' LIMIT 1`,
+        [project.id, fqName]
+      );
+      if (fqAssetRows.length) existingAssetId = fqAssetRows[0].asset_id;
+    }
 
-    const assetRes = await client.query(assetQuery, [
-      sourceId,
-      project.id,
-      asset.schemaId || null,
-      asset.generatedTableId || null,
-      schemaName,
-      assetName,
-      assetType,
-      fqName,
-      userId,
-      fileSize,
-      sheetName,
-      columnCount,
-      mimeType
-    ]);
+    let assetId;
+    if (existingAssetId) {
+      const updateQuery = `
+        UPDATE public.catalog_asset
+        SET source_id = $1,
+            schema_id = COALESCE($2, schema_id),
+            generated_table_id = COALESCE($3, generated_table_id),
+            asset_type = $4,
+            file_size = COALESCE($5, file_size),
+            sheet_name = COALESCE($6, sheet_name),
+            column_count = COALESCE($7, column_count),
+            mime_type = COALESCE($8, mime_type),
+            status = 'ACTIVE',
+            updated_at = now()
+        WHERE asset_id = $9
+        RETURNING asset_id;
+      `;
+      const updateRes = await client.query(updateQuery, [
+        sourceId,
+        asset.schemaId || null,
+        asset.generatedTableId || null,
+        assetType,
+        fileSize,
+        sheetName,
+        columnCount,
+        mimeType,
+        existingAssetId
+      ]);
+      assetId = updateRes.rows[0].asset_id;
+    } else {
+      const assetQuery = `
+        INSERT INTO public.catalog_asset (
+          source_id,
+          project_id,
+          schema_id,
+          generated_table_id,
+          schema_name,
+          asset_name,
+          asset_type,
+          fq_name,
+          classification,
+          status,
+          created_by,
+          file_size,
+          sheet_name,
+          column_count,
+          mime_type
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'INTERNAL', 'ACTIVE', $9, $10, $11, $12, $13)
+        ON CONFLICT (source_id, fq_name) DO UPDATE SET
+          schema_id = COALESCE(EXCLUDED.schema_id, public.catalog_asset.schema_id),
+          generated_table_id = COALESCE(EXCLUDED.generated_table_id, public.catalog_asset.generated_table_id),
+          asset_type = EXCLUDED.asset_type,
+          file_size = COALESCE(EXCLUDED.file_size, public.catalog_asset.file_size),
+          sheet_name = COALESCE(EXCLUDED.sheet_name, public.catalog_asset.sheet_name),
+          column_count = COALESCE(EXCLUDED.column_count, public.catalog_asset.column_count),
+          mime_type = COALESCE(EXCLUDED.mime_type, public.catalog_asset.mime_type),
+          status = 'ACTIVE',
+          updated_at = now()
+        RETURNING asset_id;
+      `;
 
-    const assetId = assetRes.rows[0].asset_id;
+      const assetRes = await client.query(assetQuery, [
+        sourceId,
+        project.id,
+        asset.schemaId || null,
+        asset.generatedTableId || null,
+        schemaName,
+        assetName,
+        assetType,
+        fqName,
+        userId,
+        fileSize,
+        sheetName,
+        columnCount,
+        mimeType
+      ]);
+
+      assetId = assetRes.rows[0].asset_id;
+    }
 
     // 3. Idempotent ASSET_COLUMN registration
     // We remove prior columns for this asset within this transaction so any ordinal_position
