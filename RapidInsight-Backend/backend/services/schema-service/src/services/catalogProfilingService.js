@@ -363,7 +363,9 @@ async function runProfileStatistic({ projectId, columnId, statistic, userId = nu
 
   const sql = `
     SELECT 
-      ${statSql} AS stat_result,
+      ${statSql
+        
+      } AS stat_result,
       COUNT(*)::bigint AS sample_size
     FROM ${safeSchema}.${safeTable};
   `;

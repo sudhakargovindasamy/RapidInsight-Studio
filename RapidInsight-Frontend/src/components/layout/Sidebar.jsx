@@ -218,12 +218,12 @@ export default function Sidebar({
           Data Ingestion
         </ProjectNavLink>
 
-        <ProjectNavLink to={`${projectBase}/playground`} icon="playground">
-          Schema Playground
-        </ProjectNavLink>
-
         <ProjectNavLink to={`${projectBase}/reports`} icon="reports">
           Generated Report
+        </ProjectNavLink>
+
+        <ProjectNavLink to={`${projectBase}/playground`} icon="playground">
+          Schema Playground
         </ProjectNavLink>
 
         <ProjectNavLink to={`${projectBase}/catalog`} icon="catalog">
