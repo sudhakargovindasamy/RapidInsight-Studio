@@ -67,7 +67,6 @@ function MySchemasPanel({
   const navigate = useNavigate();
 
   const [schemas, setSchemas] = useState([]);
-  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [generationStatus, setGenerationStatus] = useState({
@@ -252,21 +251,7 @@ function MySchemasPanel({
     setSeedPollKey((key) => key + 1);
   }
 
-  const filteredSchemas = useMemo(() => {
-    const value = search.trim().toLowerCase();
-
-    if (!value) return schemas;
-
-    return schemas.filter((schema) => {
-      const name =
-        schema.original_file_name ||
-        schema.name ||
-        schema.table_name ||
-        '';
-
-      return name.toLowerCase().includes(value);
-    });
-  }, [schemas, search]);
+  const filteredSchemas = schemas;
 
   async function animateProgressUntilDone(requestPromise) {
     setGenerationStatus({
@@ -461,14 +446,6 @@ function MySchemasPanel({
         </div>
 
         <div className="pws-schema-header-actions">
-          <input
-            className="search-input pws-schema-search"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search schemas…"
-            aria-label="Search schemas"
-          />
-
           <button
             type="button"
             onClick={fetchSchemas}
@@ -476,20 +453,6 @@ function MySchemasPanel({
             disabled={loading}
           >
             {loading ? 'Loading…' : '↻ Refresh'}
-          </button>
-
-          <button
-            type="button"
-            className="primary-btn"
-            onClick={handleGenerateTables}
-            disabled={!canGenerateTables}
-            title={generateBlockedReason || undefined}
-          >
-            {isGenerating
-              ? 'Generating...'
-              : seedStatus?.pending > 0
-                ? 'Preparing schemas…'
-                : 'Generate Tables'}
           </button>
         </div>
       </div>
@@ -575,6 +538,23 @@ function MySchemasPanel({
             ))}
           </div>
         )}
+
+        <div className="custom-kpi-generate-row" style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
+          <button
+            type="button"
+            className="primary-btn"
+            onClick={handleGenerateTables}
+            disabled={!canGenerateTables}
+            title={generateBlockedReason || undefined}
+            style={{ padding: '10px 24px', fontSize: '14px', fontWeight: '600' }}
+          >
+            {isGenerating
+              ? 'Generating Report…'
+              : seedStatus?.pending > 0
+                ? 'Preparing schemas…'
+                : 'Generate Report'}
+          </button>
+        </div>
       </div>
 
       <GenerateTablesStatusCard
@@ -587,11 +567,9 @@ function MySchemasPanel({
 
       {error && <div className="error-box">{error}</div>}
 
-      {!loading && !error && filteredSchemas.length === 0 && (
+      {!loading && !error && schemas.length === 0 && (
         <div className="empty-state">
-          {schemas.length === 0
-            ? 'No schemas uploaded yet. Use the upload panel above to add the first schema.'
-            : 'No schemas match your search.'}
+          No schemas uploaded yet. Use the upload panel above to add the first schema.
         </div>
       )}
 

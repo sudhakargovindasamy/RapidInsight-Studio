@@ -74,7 +74,7 @@ export default function GenerateTablesStatusCard({
     <section className={`generate-status-card generate-status-card--${cardState}`}>
       <div className="generate-status-header">
         <div>
-          <span className="generate-status-kicker">Generate Tables</span>
+          <span className="generate-status-kicker">Generate Report</span>
           <h3>{details.label}</h3>
         </div>
         <strong>{details.percent}%</strong>
@@ -112,7 +112,7 @@ export default function GenerateTablesStatusCard({
             className="secondary-btn"
             onClick={onRestartGenerateTables}
           >
-            Restart Generate Tables
+            Restart Generate Report
           </button>
         </div>
       ) : null}

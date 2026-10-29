@@ -9,11 +9,12 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 30px;
-  padding: 34px;
+  flex-wrap: wrap;
+  gap: 24px;
+  padding: 30px 34px;
   border: 1px solid var(--border-color);
   border-radius: 26px;
   background:

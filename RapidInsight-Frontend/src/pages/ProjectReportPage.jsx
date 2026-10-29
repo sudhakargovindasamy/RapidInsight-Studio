@@ -21,20 +21,6 @@ function extractProject(response) {
   return response?.project || response?.data?.project || response?.data || response || null;
 }
 
-function formatGeneratedAt(value) {
-  if (!value) return 'Not generated yet';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'Not generated yet';
-
-  return new Intl.DateTimeFormat('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  }).format(date);
-}
-
 export default function ProjectReportPage() {
   const { projectId } = useParams();
   const navigate = useNavigate();
@@ -85,14 +71,6 @@ export default function ProjectReportPage() {
   const title = config.title || `${project?.name || 'Project'} Report`;
   const subtitle = config.subtitle || 'Generated analytics from your project data.';
 
-  const metadata = useMemo(() => ([
-    { label: 'Project', value: project?.name || projectId },
-    { label: 'Status', value: status },
-    { label: 'KPIs', value: kpis.length },
-    { label: 'Charts', value: charts.length },
-    { label: 'Last generated', value: formatGeneratedAt(dashboard?.generated_at || reportData.generated_at) }
-  ]), [project?.name, projectId, status, kpis.length, charts.length, dashboard?.generated_at, reportData.generated_at]);
-
   if (loading) {
     return (
       <div className="project-report-page">
@@ -126,21 +104,10 @@ export default function ProjectReportPage() {
               className="secondary-btn"
               onClick={() => navigate(`/projects/${projectId}/playground`)}
             >
-              Open Schema Playground
+              Schema Playground
             </button>
           </div>
         </div>
-
-        <dl className="project-report-meta">
-          {metadata.map((item) => (
-            <div key={item.label}>
-              <dt>{item.label}</dt>
-              <dd className={item.label === 'Status' ? `status-${status}` : ''}>
-                {item.value}
-              </dd>
-            </div>
-          ))}
-        </dl>
       </section>
 
       {/* Uploaded Schemas, Target KPIs, and Table Generation section */}
