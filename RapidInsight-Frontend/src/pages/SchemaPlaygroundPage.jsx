@@ -33,7 +33,8 @@ export default function SchemaPlaygroundPage() {
     }
 
     navigate(
-      `/projects/${projectId}/tables/${generatedTableId}`
+      `/projects/${projectId}/tables/${generatedTableId}`,
+      { state: { from: `/projects/${projectId}/playground` } }
     );
   };
 

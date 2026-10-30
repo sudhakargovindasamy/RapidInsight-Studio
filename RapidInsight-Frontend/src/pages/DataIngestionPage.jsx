@@ -1648,6 +1648,7 @@ export default function DataIngestionPage() {
                             {asset.generated_table_id && (
                               <Link
                                 to={`/projects/${selectedProjectId}/tables/${asset.generated_table_id}`}
+                                state={{ from: `/projects/${selectedProjectId}/data-ingestion` }}
                                 className="view-table-link"
                               >
                                 View Table →
@@ -1701,7 +1702,7 @@ export default function DataIngestionPage() {
         <div className="summary-card">
           <span className="summary-label">Destination Table</span>
           {selectedAsset?.is_populated && selectedAsset?.generated_table_id ? (
-            <Link to={`/projects/${selectedProjectId}/tables/${selectedAsset.generated_table_id}`} className="view-table-link">
+            <Link to={`/projects/${selectedProjectId}/tables/${selectedAsset.generated_table_id}`} state={{ from: `/projects/${selectedProjectId}/data-ingestion` }} className="view-table-link">
               View Physical Table →
             </Link>
           ) : (

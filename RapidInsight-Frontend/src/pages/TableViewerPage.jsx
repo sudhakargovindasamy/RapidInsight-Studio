@@ -1,11 +1,12 @@
 import './TableViewerPage.css';
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { getTableRows } from '../api/tableApi';
 
 export default function TableViewerPage() {
   const { projectId, generatedTableId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [rows, setRows] = useState([]);
   const [tableInfo, setTableInfo] = useState(null);
@@ -126,8 +127,8 @@ export default function TableViewerPage() {
               type="button"
               className="secondary-btn"
               onClick={() => {
-                if (projectId) {
-                  navigate(`/projects/${projectId}/playground`);
+                if (location.state?.from) {
+                  navigate(location.state.from);
                   return;
                 }
 

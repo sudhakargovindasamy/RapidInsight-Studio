@@ -277,6 +277,7 @@ async function listCatalogColumns({ projectId, assetId }) {
       ac.data_type,
       ac.ordinal_position,
       ac.is_pk,
+      ac.is_fk,
       ac.is_nullable,
       ac.classification,
       ac.created_at,

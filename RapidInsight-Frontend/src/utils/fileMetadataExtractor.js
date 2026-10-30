@@ -193,12 +193,16 @@ export async function extractAssetMetadata(file) {
     }
     seenNames.add(name);
 
+    const isPk = i === 0 && (name === 'id' || name.endsWith('_id') || name.startsWith('pk_'));
+    const isFk = !isPk && (name.endsWith('_id') || name.startsWith('fk_') || (name === 'id' && i > 0));
+
     columns.push({
       name,
       type: inferSampleType(col.sampleValues),
       ordinalPosition: i,
       isNullable: true,
-      isPk: i === 0 && (name === 'id' || name.endsWith('_id'))
+      isPk,
+      isFk
     });
   }
 
