@@ -116,6 +116,9 @@ export default function ProjectReportPage() {
           projectId={projectId}
           title="Generate Insights"
           hideEmptyState={true}
+          hideRefreshButton={true}
+          hideSchemaCards={true}
+          showStatusOnlyWhileRunning={true}
           onTablesGenerated={() => loadReport({ quiet: true })}
           onViewReport={() => loadReport({ quiet: true })}
         />

@@ -603,6 +603,10 @@ body[data-theme='light'] .project-report-kpi-tag {
   border: 1px solid #cfcaea !important;
 }
 
-.project-report-schemas-section .empty-state {
+.project-report-schemas-section .empty-state,
+.project-report-schemas-section .pws-schema-header-actions,
+.project-report-schemas-section .pws-compact-schema-grid,
+.project-report-schemas-section .schema-grid,
+.project-report-schemas-section .generate-status-card:not(.generate-status-card--running) {
   display: none !important;
 }

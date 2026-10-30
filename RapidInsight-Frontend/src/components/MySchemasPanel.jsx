@@ -62,6 +62,10 @@ function MySchemasPanel({
   compact = false,
   title,
   hideEmptyState = false,
+  hideRefreshButton = false,
+  hideSchemaCards = false,
+  showStatusOnlyWhileRunning = false,
+  hideStatusCard = false,
   onTablesGenerated,
   onViewReport
 }) {
@@ -447,16 +451,18 @@ function MySchemasPanel({
           </p>
         </div>
 
-        <div className="pws-schema-header-actions">
-          <button
-            type="button"
-            onClick={fetchSchemas}
-            className="refresh-btn"
-            disabled={loading}
-          >
-            {loading ? 'Loading…' : '↻ Refresh'}
-          </button>
-        </div>
+        {!hideRefreshButton && (
+          <div className="pws-schema-header-actions">
+            <button
+              type="button"
+              onClick={fetchSchemas}
+              className="refresh-btn"
+              disabled={loading}
+            >
+              {loading ? 'Loading…' : '↻ Refresh'}
+            </button>
+          </div>
+        )}
       </div>
 
       {generateBlockedReason && !isGenerating && (
@@ -559,13 +565,15 @@ function MySchemasPanel({
         </div>
       </div>
 
-      <GenerateTablesStatusCard
-        status={generationStatus}
-        onRetryDataInsert={handleRetryDataInsert}
-        onRestartGenerateTables={handleGenerateTables}
-        onOpenPlayground={handleOpenPlayground}
-        onViewReport={handleViewReport}
-      />
+      {(!showStatusOnlyWhileRunning || isGenerating) && !hideStatusCard && (
+        <GenerateTablesStatusCard
+          status={generationStatus}
+          onRetryDataInsert={handleRetryDataInsert}
+          onRestartGenerateTables={handleGenerateTables}
+          onOpenPlayground={handleOpenPlayground}
+          onViewReport={handleViewReport}
+        />
+      )}
 
       {error && <div className="error-box">{error}</div>}
 
@@ -575,7 +583,7 @@ function MySchemasPanel({
         </div>
       )}
 
-      {!loading && !error && filteredSchemas.length > 0 && (
+      {!hideSchemaCards && !loading && !error && filteredSchemas.length > 0 && (
         <div className="schema-grid pws-compact-schema-grid">
           {filteredSchemas.map((schema) => (
             <SchemaCard
