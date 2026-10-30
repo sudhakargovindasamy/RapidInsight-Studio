@@ -95,8 +95,18 @@ function main() {
   console.log('(kept short and outside the repo - see the comment in this file)');
 
   if (!fs.existsSync(python)) {
+    let hostPython = IS_WINDOWS ? 'python' : 'python3';
+    if (IS_WINDOWS) {
+      const probe = spawnSync('python', ['--version']);
+      if (probe.status !== 0) {
+        const pyProbe = spawnSync('py', ['--version']);
+        if (pyProbe.status === 0) {
+          hostPython = 'py';
+        }
+      }
+    }
     run(
-      IS_WINDOWS ? 'python' : 'python3',
+      hostPython,
       ['-m', 'venv', venvDir],
       `create venv at ${venvDir}`
     );
