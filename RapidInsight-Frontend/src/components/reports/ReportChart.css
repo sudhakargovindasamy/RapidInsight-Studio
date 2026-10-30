@@ -43,6 +43,31 @@
   text-transform: uppercase;
 }
 
+.report-chart-card__type--interactive {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 10px;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  user-select: none;
+  font-family: inherit;
+  outline: none;
+}
+
+.report-chart-card__type--interactive:hover {
+  background: var(--schema-primary);
+  color: #ffffff;
+  border-color: var(--schema-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 115, 220, 0.35);
+}
+
+.report-chart-card__type--interactive:active {
+  transform: translateY(0);
+}
+
 .report-chart-card__canvas {
   position: relative;
   min-height: 330px;
@@ -59,19 +84,5 @@
   color: var(--text-muted);
   background: var(--muted-bg);
   font-size: 13px;
-}
-
-@media (max-width: 680px) {
-  .report-chart-card {
-    padding: 18px;
-  }
-
-  .report-chart-card__header {
-    flex-direction: column;
-  }
-
-  .report-chart-card__canvas {
-    min-height: 270px;
-    height: 44vh;
-  }
+  font-weight: 700;
 }

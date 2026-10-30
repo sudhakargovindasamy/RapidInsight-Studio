@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   ArcElement,
   BarElement,
@@ -143,12 +144,19 @@ function resolveChartAxisLabels(item) {
 }
 
 export default function ReportChart({ item }) {
+  const isCircular = item.type === 'pie' || item.type === 'doughnut';
+  const isLine = item.type === 'line';
+  const isBar = !isCircular && !isLine;
+
+  // Toggle state: 'x' for vertical bars, 'y' for horizontal bars
+  const [orientation, setOrientation] = useState(() => (item.type === 'horizontal_bar' ? 'y' : 'x'));
+  const isHorizontal = isBar && orientation === 'y';
+
   const ChartComponent = selectChart(item.type);
   const labels = Array.isArray(item.labels) ? item.labels : [];
   const values = Array.isArray(item.values) ? item.values : [];
   const { groupLabel, measureLabel } = resolveChartAxisLabels(item);
   const heading = item.title || measureLabel;
-  const isCircular = item.type === 'pie' || item.type === 'doughnut';
   const primary = cssVariable('--schema-primary', '#8b73dc');
   const muted = cssVariable('--text-muted', '#8d93a1');
   const border = cssVariable('--border-color', 'rgba(148, 163, 184, 0.22)');
@@ -162,16 +170,21 @@ export default function ReportChart({ item }) {
         borderColor: isCircular ? cssVariable('--card-solid', '#11141a') : primary,
         backgroundColor: isCircular
           ? labels.map((_, index) => CHART_COLORS[index % CHART_COLORS.length])
-          : item.type === 'line'
+          : isLine
             ? 'rgba(178, 131, 245, 0.16)'
             : 'rgba(139, 115, 220, 0.78)',
         borderWidth: isCircular ? 2 : 1.5,
-        borderRadius: item.type === 'bar' ? 8 : 0,
-        fill: item.type === 'line',
+        borderRadius: isBar
+          ? isHorizontal
+            ? { topRight: 6, bottomRight: 6, topLeft: 0, bottomLeft: 0 }
+            : { topLeft: 6, topRight: 6, bottomLeft: 0, bottomRight: 0 }
+          : 0,
+        maxBarThickness: isBar ? (isHorizontal ? 26 : 38) : undefined,
+        fill: isLine,
         pointBackgroundColor: primary,
         pointBorderColor: primary,
-        pointRadius: item.type === 'line' ? 3 : 0,
-        tension: item.type === 'line' ? 0.32 : 0
+        pointRadius: isLine ? 3 : 0,
+        tension: isLine ? 0.32 : 0
       }
     ]
   };
@@ -179,8 +192,9 @@ export default function ReportChart({ item }) {
   const options = {
     responsive: true,
     maintainAspectRatio: false,
+    indexAxis: isHorizontal ? 'y' : 'x',
     animation: {
-      duration: 650
+      duration: 550
     },
     plugins: {
       legend: {
@@ -202,46 +216,87 @@ export default function ReportChart({ item }) {
             const label = entries?.[0]?.label ?? '';
             return groupLabel ? `${groupLabel}: ${label}` : label;
           },
-          label: (entry) =>
-            ` ${measureLabel}: ${formatChartValue(entry.parsed?.y ?? entry.parsed, item.format)}`
+          label: (entry) => {
+            const val = isHorizontal ? entry.parsed?.x : (entry.parsed?.y ?? entry.parsed);
+            return ` ${measureLabel}: ${formatChartValue(val, item.format)}`;
+          }
         }
       }
     },
     scales: isCircular
       ? undefined
-      : {
-          x: {
-            title: groupLabel
-              ? { display: true, text: groupLabel, color: muted, font: { weight: '600' } }
-              : { display: false },
-            ticks: {
-              color: muted,
-              maxRotation: 35,
-              minRotation: 0
+      : isHorizontal
+        ? {
+            x: {
+              beginAtZero: true,
+              title: measureLabel
+                ? { display: true, text: measureLabel, color: muted, font: { weight: '600' } }
+                : { display: false },
+              ticks: {
+                color: muted,
+                precision: 0,
+                callback: (value) => formatChartValue(value, item.format)
+              },
+              grid: {
+                color: border
+              },
+              border: {
+                display: false
+              }
             },
-            grid: {
-              display: false
-            },
-            border: {
-              color: border
-            }
-          },
-          y: {
-            beginAtZero: true,
-            title: { display: true, text: measureLabel, color: muted, font: { weight: '600' } },
-            ticks: {
-              color: muted,
-              precision: 0,
-              callback: (value) => formatChartValue(value, item.format)
-            },
-            grid: {
-              color: border
-            },
-            border: {
-              display: false
+            y: {
+              title: groupLabel
+                ? { display: true, text: groupLabel, color: muted, font: { weight: '600' } }
+                : { display: false },
+              ticks: {
+                color: muted,
+                maxRotation: 0,
+                minRotation: 0,
+                autoSkip: false
+              },
+              grid: {
+                display: false
+              },
+              border: {
+                color: border
+              }
             }
           }
-        }
+        : {
+            x: {
+              title: groupLabel
+                ? { display: true, text: groupLabel, color: muted, font: { weight: '600' } }
+                : { display: false },
+              ticks: {
+                color: muted,
+                maxRotation: 35,
+                minRotation: 0
+              },
+              grid: {
+                display: false
+              },
+              border: {
+                color: border
+              }
+            },
+            y: {
+              beginAtZero: true,
+              title: measureLabel
+                ? { display: true, text: measureLabel, color: muted, font: { weight: '600' } }
+                : { display: false },
+              ticks: {
+                color: muted,
+                precision: 0,
+                callback: (value) => formatChartValue(value, item.format)
+              },
+              grid: {
+                color: border
+              },
+              border: {
+                display: false
+              }
+            }
+          }
   };
 
   return (
@@ -251,11 +306,31 @@ export default function ReportChart({ item }) {
           <h2>{heading}</h2>
           {item.description ? <p>{item.description}</p> : null}
         </div>
-        <span className="report-chart-card__type">{item.type || 'bar'}</span>
+        {isBar ? (
+          <button
+            type="button"
+            className="report-chart-card__type report-chart-card__type--interactive"
+            onClick={() => setOrientation((prev) => (prev === 'x' ? 'y' : 'x'))}
+            title={`Currently ${isHorizontal ? 'Horizontal' : 'Vertical'} Bar. Click to switch to ${isHorizontal ? 'Vertical' : 'Horizontal'} layout.`}
+            aria-label={`Switch between vertical and horizontal layout`}
+          >
+            <span aria-hidden="true" style={{ fontSize: '11px' }}>{isHorizontal ? '⇄' : '⇅'}</span>
+            <span>{isHorizontal ? 'Horizontal Bar' : 'Vertical Bar'}</span>
+          </button>
+        ) : (
+          <span className="report-chart-card__type">{item.type || 'chart'}</span>
+        )}
       </header>
 
       {labels.length ? (
-        <div className="report-chart-card__canvas">
+        <div
+          className="report-chart-card__canvas"
+          style={{
+            height: isHorizontal && labels.length > 8 ? `${Math.max(340, labels.length * 36)}px` : undefined,
+            maxHeight: isHorizontal && labels.length > 8 ? '520px' : undefined,
+            overflowY: isHorizontal && labels.length > 8 ? 'auto' : undefined
+          }}
+        >
           <ChartComponent data={data} options={options} />
         </div>
       ) : (
