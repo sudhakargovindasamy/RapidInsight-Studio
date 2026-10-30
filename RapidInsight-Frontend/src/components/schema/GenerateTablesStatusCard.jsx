@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import './GenerateTablesStatusCard.css';
 
 const STEP_DETAILS = {
@@ -23,19 +24,19 @@ const STEP_DETAILS = {
   },
   blueprint_generation: {
     label: 'Designing the data model and report plan',
-    percent: 30
+    percent: 40
   },
   validating_blueprint: {
     label: 'Validating tables, relationships and analytics',
-    percent: 45
+    percent: 52
   },
   creating_tables: {
     label: 'Creating physical PostgreSQL tables',
-    percent: 60
+    percent: 66
   },
   generating_data: {
     label: 'Generating relational Faker data',
-    percent: 76
+    percent: 78
   },
   inserting_data: {
     label: 'Inserting generated rows',
@@ -70,6 +71,56 @@ export default function GenerateTablesStatusCard({
   const isFailed = state === 'failed';
   const cardState = isFailed ? 'failed' : isDone ? 'done' : isRunning ? 'running' : 'idle';
 
+  // Smooth visual progress that starts at left and slightly increases from left to right while loading
+  const [currentProgress, setCurrentProgress] = useState(0);
+
+  useEffect(() => {
+    if (isDone) {
+      setCurrentProgress(100);
+      return;
+    }
+
+    if (isFailed) {
+      return;
+    }
+
+    if (!isRunning) {
+      setCurrentProgress(0);
+      return;
+    }
+
+    // While running, start from at least 10% and smoothly, slightly increase from left to right
+    setCurrentProgress((prev) => Math.max(prev, details.percent, 10));
+
+    const interval = setInterval(() => {
+      setCurrentProgress((prev) => {
+        if (prev < 35) return prev + 2.5;
+        if (prev < 65) return prev + 1.8;
+        if (prev < 88) return prev + 0.8;
+        if (prev < 95) return prev + 0.3;
+        return prev;
+      });
+    }, 350);
+
+    return () => clearInterval(interval);
+  }, [isRunning, isDone, isFailed, details.percent]);
+
+  const displayPercent = isDone
+    ? 100
+    : isFailed
+      ? 100
+      : isRunning
+        ? Math.round(currentProgress)
+        : details.percent;
+
+  const barWidth = isDone
+    ? 100
+    : isFailed
+      ? 100
+      : isRunning
+        ? Math.min(Math.round(currentProgress), 95)
+        : details.percent;
+
   return (
     <section className={`generate-status-card generate-status-card--${cardState}`}>
       <div className="generate-status-header">
@@ -77,20 +128,21 @@ export default function GenerateTablesStatusCard({
           <span className="generate-status-kicker">Generate Report</span>
           <h3>{details.label}</h3>
         </div>
-        <strong>{details.percent}%</strong>
+        <strong>{displayPercent}%</strong>
       </div>
 
       <div
-        className="generate-progress-track"
+        className={`generate-progress-track ${isRunning ? 'generate-progress-track--running' : ''}`}
         role="progressbar"
         aria-valuemin="0"
         aria-valuemax="100"
-        aria-valuenow={details.percent}
+        aria-valuenow={displayPercent}
       >
         <span
           className="generate-progress-fill"
-          style={{ width: `${details.percent}%` }}
+          style={{ width: `${barWidth}%` }}
         />
+        {isRunning && <span className="generate-progress-runner" />}
       </div>
 
       {status?.error ? (

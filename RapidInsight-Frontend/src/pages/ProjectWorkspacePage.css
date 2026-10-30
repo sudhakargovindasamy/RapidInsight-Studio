@@ -1202,8 +1202,8 @@ body[data-theme='light']
   background:
     linear-gradient(
       90deg,
-      #4f5f91,
-      #6f62c6
+      #059669,
+      #10b981
     ) !important;
 }
 
@@ -2046,12 +2046,12 @@ body[data-theme='dark']
   background:
     linear-gradient(
       90deg,
-      #596ca0,
-      #8d72db
+      #059669,
+      #10b981
     ) !important;
 
   box-shadow:
-    0 0 12px rgba(141, 114, 219, 0.22);
+    0 0 14px rgba(16, 185, 129, 0.45);
 }
 
 
