@@ -184,3 +184,25 @@
 .columns-spec-table tr:last-child td {
   border-bottom: none;
 }
+
+.pk-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.fk-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: rgba(99, 102, 241, 0.14);
+  color: #6366f1;
+  font-size: 11.5px;
+  font-weight: 600;
+}

@@ -227,7 +227,8 @@ class PostgresConnector extends BaseConnector {
         c.data_type, 
         c.is_nullable,
         c.column_default,
-        CASE WHEN pk.column_name IS NOT NULL THEN true ELSE false END as is_primary_key
+        CASE WHEN pk.column_name IS NOT NULL THEN true ELSE false END as is_primary_key,
+        CASE WHEN fk.column_name IS NOT NULL THEN true ELSE false END as is_foreign_key
       FROM information_schema.columns c
       LEFT JOIN (
         SELECT kcu.column_name, kcu.table_schema, kcu.table_name
@@ -238,6 +239,15 @@ class PostgresConnector extends BaseConnector {
       ) pk ON pk.table_schema = c.table_schema 
           AND pk.table_name = c.table_name 
           AND pk.column_name = c.column_name
+      LEFT JOIN (
+        SELECT kcu.column_name, kcu.table_schema, kcu.table_name
+        FROM information_schema.table_constraints tc
+        JOIN information_schema.key_column_usage kcu
+          ON tc.constraint_name = kcu.constraint_name AND tc.table_schema = kcu.table_schema
+        WHERE tc.constraint_type = 'FOREIGN KEY'
+      ) fk ON fk.table_schema = c.table_schema 
+          AND fk.table_name = c.table_name 
+          AND fk.column_name = c.column_name
       WHERE c.table_schema = $1 AND c.table_name = $2
       ORDER BY c.ordinal_position;
     `;
@@ -249,6 +259,9 @@ class PostgresConnector extends BaseConnector {
       name: col.column_name,
       type: mapPgTypeToSchemaType(col.data_type),
       primaryKey: Boolean(col.is_primary_key),
+      foreignKey: Boolean(col.is_foreign_key),
+      isPk: Boolean(col.is_primary_key),
+      isFk: Boolean(col.is_foreign_key),
       notNull: col.is_nullable === 'NO',
       unique: Boolean(col.is_primary_key)
     }));

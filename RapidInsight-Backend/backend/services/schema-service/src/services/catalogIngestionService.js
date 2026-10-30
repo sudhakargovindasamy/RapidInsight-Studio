@@ -209,6 +209,13 @@ async function registerCatalogMetadata({
       const dataType = String(col.type || col.data_type || 'string').trim().toLowerCase();
       const ordinalPos = typeof col.ordinalPosition === 'number' ? col.ordinalPosition : i;
       const isPk = Boolean(col.isPk || col.is_pk || col.primaryKey);
+      const isFk = Boolean(
+        col.isFk ||
+        col.is_fk ||
+        col.foreignKey ||
+        col.isForeignKey ||
+        (!isPk && (colName.toLowerCase().endsWith('_id') || colName.toLowerCase().startsWith('fk_')))
+      );
       const isNullable = col.isNullable !== undefined ? Boolean(col.isNullable) : (col.notNull !== undefined ? !col.notNull : true);
 
       const colQuery = `
@@ -218,13 +225,15 @@ async function registerCatalogMetadata({
           data_type,
           ordinal_position,
           is_pk,
+          is_fk,
           is_nullable,
           classification
-        ) VALUES ($1, $2, $3, $4, $5, $6, 'INTERNAL')
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'INTERNAL')
         ON CONFLICT (asset_id, column_name) DO UPDATE SET
           data_type = EXCLUDED.data_type,
           ordinal_position = EXCLUDED.ordinal_position,
           is_pk = EXCLUDED.is_pk,
+          is_fk = EXCLUDED.is_fk,
           is_nullable = EXCLUDED.is_nullable,
           updated_at = now();
       `;
@@ -235,6 +244,7 @@ async function registerCatalogMetadata({
         dataType,
         ordinalPos,
         isPk,
+        isFk,
         isNullable
       ]);
     }

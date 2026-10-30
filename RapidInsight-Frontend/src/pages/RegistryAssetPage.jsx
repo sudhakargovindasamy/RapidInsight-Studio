@@ -293,22 +293,45 @@ export default function RegistryAssetPage() {
                         <th>Data Type</th>
                         <th>Nullable</th>
                         <th>Primary Key</th>
+                        <th>Foreign Key</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {assetColumns.map((col, idx) => (
-                        <tr key={col.column_id || idx}>
-                          <td>{col.ordinal_position != null ? col.ordinal_position + 1 : idx + 1}</td>
-                          <td>
-                            <strong>{col.column_name}</strong>
-                          </td>
-                          <td>
-                            <span className="type-badge">{(col.data_type || 'STRING').toUpperCase()}</span>
-                          </td>
-                          <td>{col.is_nullable ? 'Yes' : 'No'}</td>
-                          <td>{col.is_pk ? '✓ PK' : '—'}</td>
-                        </tr>
-                      ))}
+                      {assetColumns.map((col, idx) => {
+                        const isFk = Boolean(
+                          col.is_fk ||
+                          col.isFk ||
+                          col.foreignKey ||
+                          col.is_foreign_key ||
+                          (!col.is_pk && !col.isPk && (
+                            col.column_name.toLowerCase().endsWith('_id') ||
+                            col.column_name.toLowerCase().startsWith('fk_') ||
+                            (col.column_name.toLowerCase() === 'id' && idx > 0)
+                          ))
+                        );
+                        return (
+                          <tr key={col.column_id || idx}>
+                            <td>{col.ordinal_position != null ? col.ordinal_position + 1 : idx + 1}</td>
+                            <td>
+                              <strong>{col.column_name}</strong>
+                            </td>
+                            <td>
+                              <span className="type-badge">{(col.data_type || 'STRING').toUpperCase()}</span>
+                            </td>
+                            <td>{col.is_nullable ? 'Yes' : 'No'}</td>
+                            <td>
+                              {col.is_pk || col.isPk ? (
+                                <span className="pk-badge">✓ PK</span>
+                              ) : '—'}
+                            </td>
+                            <td>
+                              {isFk ? (
+                                <span className="fk-badge">✓ FK</span>
+                              ) : '—'}
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
