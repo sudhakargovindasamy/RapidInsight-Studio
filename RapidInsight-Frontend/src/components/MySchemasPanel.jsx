@@ -60,6 +60,8 @@ function MySchemasPanel({
   projectId,
   refreshKey,
   compact = false,
+  title,
+  hideEmptyState = false,
   onTablesGenerated,
   onViewReport
 }) {
@@ -439,9 +441,9 @@ function MySchemasPanel({
     <section className={`workspace-panel pws-schemas-panel${compact ? ' pws-schemas-panel--compact' : ''}`}>
       <div className="panel-header pws-schemas-panel-header">
         <div>
-          <h2 className="panel-title">Uploaded schemas</h2>
+          <h2 className="panel-title">{title || 'Uploaded schemas'}</h2>
           <p className="panel-description">
-            {schemas.length} schema{schemas.length !== 1 ? 's' : ''} in this project.
+            {title ? 'Configure target metrics and generate report analytics.' : `${schemas.length} schema${schemas.length !== 1 ? 's' : ''} in this project.`}
           </p>
         </div>
 
@@ -567,7 +569,7 @@ function MySchemasPanel({
 
       {error && <div className="error-box">{error}</div>}
 
-      {!loading && !error && schemas.length === 0 && (
+      {!loading && !error && schemas.length === 0 && !hideEmptyState && (
         <div className="empty-state">
           No schemas uploaded yet. Use the upload panel above to add the first schema.
         </div>

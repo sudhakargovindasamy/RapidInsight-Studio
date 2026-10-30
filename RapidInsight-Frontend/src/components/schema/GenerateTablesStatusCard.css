@@ -314,3 +314,96 @@ body[data-theme='dark']
   background:
     rgba(148, 42, 60, 0.18);
 }
+
+/* ==================================================
+   Green Loading / Running Bar (Smooth Left to Right Progress)
+   ================================================== */
+.generate-status-card--running {
+  border-color: rgba(16, 185, 129, 0.45) !important;
+}
+
+/* Ensure the percent number stays normal text color, NOT green */
+.generate-status-card--running .generate-status-header strong,
+.generate-status-card--running .generate-status-percent {
+  color: var(--text-main) !important;
+}
+
+body[data-theme='light'] .pws-page .generate-status-card--running .generate-status-header strong,
+body[data-theme='light'] .pws-page .generate-status-card--running .generate-status-percent {
+  color: #1f2638 !important;
+}
+
+body[data-theme='dark'] .pws-page .generate-status-card--running .generate-status-header strong,
+body[data-theme='dark'] .pws-page .generate-status-card--running .generate-status-percent {
+  color: #f2f5fb !important;
+}
+
+/* Progress track setup */
+.generate-progress-track {
+  position: relative;
+  overflow: hidden;
+  height: 9px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.22);
+}
+
+.generate-status-card--running .generate-progress-track,
+.generate-progress-track--running,
+body[data-theme='light'] .pws-page .generate-status-card--running .generate-progress-track,
+body[data-theme='dark'] .pws-page .generate-status-card--running .generate-progress-track {
+  background: rgba(16, 185, 129, 0.16) !important;
+}
+
+/* Green fill increases from left to right smoothly */
+.generate-progress-fill,
+.generate-status-card--running .generate-progress-fill,
+.generate-status-card--done .generate-progress-fill,
+body[data-theme='light'] .pws-page .generate-progress-fill,
+body[data-theme='light'] .pws-page .generate-status-card--running .generate-progress-fill,
+body[data-theme='light'] .pws-page .generate-status-card--done .generate-progress-fill,
+body[data-theme='dark'] .pws-page .generate-progress-fill,
+body[data-theme='dark'] .pws-page .generate-status-card--running .generate-progress-fill,
+body[data-theme='dark'] .pws-page .generate-status-card--done .generate-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    #059669 0%,
+    #10b981 60%,
+    #34d399 100%
+  ) !important;
+  box-shadow: 0 0 14px rgba(16, 185, 129, 0.45) !important;
+  transition: width 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+}
+
+/* Runner light effect while loading */
+.generate-progress-runner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  height: 100%;
+  width: 40%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(16, 185, 129, 0.4) 20%,
+    #34d399 60%,
+    rgba(16, 185, 129, 0.4) 90%,
+    transparent 100%
+  ) !important;
+  border-radius: 999px;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.8);
+  animation: line-running-left-to-right 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
+  z-index: 2;
+  pointer-events: none;
+}
+
+@keyframes line-running-left-to-right {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}

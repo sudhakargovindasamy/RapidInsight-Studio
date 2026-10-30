@@ -89,8 +89,9 @@ export default function ProjectReportPage() {
           <span className="project-report-eyebrow">Generated Report</span>
           <h1>{title}</h1>
           <p>{subtitle}</p>
+        </div>
 
-          <div className="project-report-hero__actions">
+        <div className="project-report-hero__actions">
             <button
               type="button"
               className="primary-btn"
@@ -107,13 +108,14 @@ export default function ProjectReportPage() {
               Schema Playground
             </button>
           </div>
-        </div>
       </section>
 
       {/* Uploaded Schemas, Target KPIs, and Table Generation section */}
       <section className="project-report-schemas-section pws-page">
         <MySchemasPanel
           projectId={projectId}
+          title="Generate Insights"
+          hideEmptyState={true}
           onTablesGenerated={() => loadReport({ quiet: true })}
           onViewReport={() => loadReport({ quiet: true })}
         />

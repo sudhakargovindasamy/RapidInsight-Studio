@@ -53,6 +53,11 @@
   line-height: 1.03;
 }
 
+.project-report-hero__copy {
+  flex: 1 1 380px;
+  min-width: 280px;
+}
+
 .project-report-hero__copy > p {
   max-width: 660px;
   margin: 15px 0 0;
@@ -63,9 +68,12 @@
 
 .project-report-hero__actions {
   display: flex;
+  align-items: center;
+  justify-content: flex-end;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 24px;
+  gap: 12px;
+  margin-top: 0;
+  flex-shrink: 0;
 }
 
 .project-report-meta {
@@ -593,4 +601,8 @@ body[data-theme='light'] .project-report-kpi-tag {
   background: #edeaf8 !important;
   color: #594cad !important;
   border: 1px solid #cfcaea !important;
+}
+
+.project-report-schemas-section .empty-state {
+  display: none !important;
 }
